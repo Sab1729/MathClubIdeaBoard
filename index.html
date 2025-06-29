@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Math Club Idea Board" />
+    <title>Math Club Idea Board</title>
+
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Basic CSS for body background -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            /* Default background for light mode */
+            background-color: #f3f4f6; 
+        }
+        /* Dark mode background */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #1a202c;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900">
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50 text-white text-2xl font-bold">
+        Loading Math Club Idea Board...
+    </div>
+
+    <!-- Error Overlay -->
+    <div id="errorOverlay" class="fixed inset-0 hidden flex-col items-center justify-center bg-red-800 bg-opacity-90 z-50 text-white text-center p-4">
+        <h2 class="text-3xl font-bold mb-4">Oops! Something Went Wrong.</h2>
+        <p id="errorMessageText" class="text-xl">An unexpected error occurred. Please check your console.</p>
+        <p class="mt-4 text-lg">Ensure your Firebase configuration and security rules are set up correctly.</p>
+    </div>
+
+    <!-- Header -->
+    <header class="py-6 bg-blue-700 dark:bg-blue-900 shadow-md">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl font-extrabold text-white mb-2">Math Club Idea Board</h1>
+            <p class="text-blue-100 text-lg">Suggest ideas and vote anonymously!</p>
+            <p class="text-blue-200 text-sm mt-2">Your anonymous user ID: <span id="userIdDisplay" class="font-mono bg-blue-800 dark:bg-blue-700 px-2 py-1 rounded">Loading...</span></p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Idea Submission Form -->
+        <form id="ideaForm" class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg mb-8 max-w-2xl mx-auto border border-gray-200 dark:border-gray-700">
+            <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100 text-center">Submit a New Idea</h2>
+            <div class="mb-4">
+                <textarea
+                    id="ideaText"
+                    class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    rows="3"
+                    placeholder="Type your idea here..."
+                    required
+                ></textarea>
+            </div>
+            <button
+                type="submit"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+            >
+                Submit Idea
+            </button>
+            <p id="formMessage" class="mt-4 text-center text-sm font-medium"></p>
+            <p class="mt-4 text-xs text-gray-500 dark:text-gray-400 text-center">Your ideas are submitted anonymously.</p>
+        </form>
+
+        <!-- Ideas List -->
+        <div id="ideasList" class="max-w-2xl mx-auto">
+            <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100 text-center">Current Ideas</h2>
+            <!-- Ideas will be loaded here by JavaScript -->
+            <p class="text-center text-gray-600 dark:text-gray-400">Loading ideas...</p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-4 text-center text-gray-600 dark:text-gray-400 text-sm">
+        <p>&copy; <span id="currentYear"></span> Math preclub. All rights reserved.</p>
+        <p>Everthing is don anonymously</p>
+    </footer>
+
+    <!-- Link to your external JavaScript file -->
+    <!-- The `type="module"` is important for Firebase imports -->
+    <!-- Place this script tag at the end of the <body> for best performance -->
+    <script type="module" src="script.js"></script>
+    <script>
+        // Set current year in footer (this can stay inline or move to script.js if preferred)
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    </script>
+</body>
+</html>
