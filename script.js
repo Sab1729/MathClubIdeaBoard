@@ -3,11 +3,27 @@
 // Import Firebase modules using CDN URLs
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, serverTimestamp, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc, deleteDoc, serverTimestamp, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // Marked.js is globally available because it's loaded via CDN in index.html
-// If you use a more advanced module bundler, you might import it differently.
 const marked = window.marked; // Access the global 'marked' object
+
+// =======================================================================================
+// >>>>>>>>>>>>>>>>> IMPORTANT SECURITY WARNING FOR MARKED.JS SANITIZATION <<<<<<<<<<<<<<<<<<
+// Setting 'sanitize: false' allows raw HTML to be rendered from Markdown.
+// This is necessary for <u> tags to work, as they are not standard Markdown.
+// HOWEVER, this also means that any malicious HTML (like <script> tags) submitted by a user
+// will also be rendered, creating a Cross-Site Scripting (XSS) vulnerability.
+// For a private, trusted group like a math club, this risk might be acceptable.
+// For public-facing applications, a more robust HTML sanitization library (e.g., DOMPurify)
+// should be used in conjunction with marked.js, or a custom marked.js extension for <u>.
+// =======================================================================================
+marked.setOptions({
+    gfm: true,     // Enable GitHub Flavored Markdown
+    breaks: true,  // Enable GFM line breaks (converts single newlines to <br/>)
+    sanitize: false // DANGER: Allows raw HTML. Use with caution!
+});
+
 
 // =======================================================================================
 // >>>>>>>>>>>>>>>>> IMPORTANT: YOUR FIREBASE CONFIGURATION HERE <<<<<<<<<<<<<<<<<<
@@ -29,7 +45,7 @@ const firebaseConfig = {
 // This helps organize your data if you use the same Firebase project for multiple apps.
 // Data path will be: `artifacts/YOUR_CUSTOM_APP_ID/public/data/ideas`
 // =======================================================================================
-const YOUR_CUSTOM_APP_ID = "math-club-ideas-board-v2-plain-js"; // You can change this string!
+const YOUR_CUSTOM_APP_ID = "math-club-ideas-board-v4-delete-style"; // Keep this ID consistent with your data
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -37,9 +53,9 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 let currentUserId = null; // To store the anonymous user's ID
+let currentSortOption = 'recent'; // Default sort option
 
 // --- DOM Elements ---
-// Ensure these IDs match the elements in your index.html
 const ideasList = document.getElementById('ideasList');
 const ideaForm = document.getElementById('ideaForm');
 const ideaTextInput = document.getElementById('ideaText');
@@ -54,13 +70,29 @@ const boldBtn = document.getElementById('boldBtn');
 const italicBtn = document.getElementById('italicBtn');
 const underlineBtn = document.getElementById('underlineBtn');
 
+// New Attribute Inputs
+const memberCountInput = document.getElementById('memberCount');
+const timeConsumingHoursInput = document.getElementById('timeConsumingHours');
+const timeToMakeDaysInput = document.getElementById('timeToMakeDays');
+const requiresFundsInput = document.getElementById('requiresFunds');
+
+// Sort Options Dropdown
+const sortOptionsDropdown = document.getElementById('sortOptions');
+
+// Delete Modal Elements
+const deleteModal = document.getElementById('deleteModal');
+const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+let ideaToDeleteId = null; // Stores the ID of the idea currently selected for deletion
+
+
 // --- Firebase Initialization and Authentication ---
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUserId = user.uid;
         userIdDisplay.textContent = currentUserId;
         loadingOverlay.classList.add('hidden');
-        listenForIdeas();
+        listenForIdeas(); // Start listening for ideas only after auth
     } else {
         try {
             await signInAnonymously(auth);
@@ -81,7 +113,13 @@ onAuthStateChanged(auth, async (user) => {
 // --- Idea Submission Handler ---
 ideaForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const ideaContent = ideaTextInput.value.trim(); // Get idea content (will contain Markdown)
+    const ideaContent = ideaTextInput.value.trim();
+    
+    // Get new attribute values, converting to numbers or boolean
+    const memberCount = parseInt(memberCountInput.value) || 0;
+    const timeConsumingHours = parseInt(timeConsumingHoursInput.value) || 0;
+    const timeToMakeDays = parseInt(timeToMakeDaysInput.value) || 0;
+    const requiresFunds = requiresFundsInput.checked;
 
     if (!ideaContent) {
         displayFormMessage('Idea cannot be empty!', 'text-red-600');
@@ -95,26 +133,35 @@ ideaForm.addEventListener('submit', async (e) => {
     try {
         const ideasCollectionRef = collection(db, `artifacts/${YOUR_CUSTOM_APP_ID}/public/data/ideas`);
         await addDoc(ideasCollectionRef, {
-            idea: ideaContent, // Store the raw Markdown content
+            idea: ideaContent,
             upvotes: 0,
             downvotes: 0,
             createdAt: serverTimestamp(),
             votedBy: {
                 up: [],
                 down: []
-            }
+            },
+            // Add new attributes
+            memberCount: memberCount,
+            timeConsumingHours: timeConsumingHours,
+            timeToMakeDays: timeToMakeDays,
+            requiresFunds: requiresFunds
         });
         ideaTextInput.value = ''; // Clear input
+        memberCountInput.value = ''; // Clear new inputs
+        timeConsumingHoursInput.value = '';
+        timeToMakeDaysInput.value = '';
+        requiresFundsInput.checked = false;
         displayFormMessage('Idea submitted successfully!', 'text-green-600');
     } catch (error) {
         console.error("Error adding document: ", error);
-        displayFormMessage('Failed to submit idea. Check console.', 'text-red-600');
+        displayFormMessage('Failed to submit idea. Check console for details.', 'text-red-600');
     }
 });
 
 function displayFormMessage(msg, colorClass) {
     formMessage.textContent = msg;
-    formMessage.className = `mt-4 text-center text-sm font-medium ${colorClass}`;
+    formMessage.className = `mt-5 text-center text-md font-medium ${colorClass}`;
     setTimeout(() => {
         formMessage.textContent = '';
         formMessage.className = '';
@@ -132,7 +179,6 @@ function applyFormatting(syntaxBefore, syntaxAfter) {
                     textarea.value.substring(end);
     textarea.value = newText;
     
-    // Maintain cursor position or select the wrapped text
     if (selectedText.length === 0) {
         textarea.selectionStart = start + syntaxBefore.length;
         textarea.selectionEnd = start + syntaxBefore.length;
@@ -145,8 +191,14 @@ function applyFormatting(syntaxBefore, syntaxAfter) {
 
 boldBtn.addEventListener('click', () => applyFormatting('**', '**'));
 italicBtn.addEventListener('click', () => applyFormatting('*', '*'));
-// For underline, using direct HTML <u> tag for simplicity, as Markdown doesn't have native underline.
 underlineBtn.addEventListener('click', () => applyFormatting('<u>', '</u>'));
+
+// --- Sort Options Handler ---
+sortOptionsDropdown.addEventListener('change', (e) => {
+    currentSortOption = e.target.value;
+    // Re-render ideas with the new sort order
+    // onSnapshot will re-trigger renderIdeas with the new sort.
+});
 
 
 // --- Real-time Ideas Listener ---
@@ -155,17 +207,45 @@ function listenForIdeas() {
     const q = query(ideasCollectionRef);
 
     onSnapshot(q, (snapshot) => {
-        const fetchedIdeas = snapshot.docs.map(doc => ({
+        let fetchedIdeas = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
 
-        fetchedIdeas.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
+        // --- Apply Client-Side Sorting ---
+        fetchedIdeas.sort((a, b) => {
+            const valA = (value) => (value === undefined || value === null ? Infinity : value); // Handle undefined/null for sorting numbers
+            const valB = (value) => (value === undefined || value === null ? Infinity : value);
+
+            switch (currentSortOption) {
+                case 'recent':
+                    // Newest first (descending timestamp)
+                    return (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0);
+                case 'likes':
+                    // Most liked (net votes descending)
+                    return (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes);
+                case 'memberCountAsc':
+                    // Least members needed (ascending)
+                    return valA(a.memberCount) - valB(b.memberCount);
+                case 'timeConsumingHoursAsc':
+                    // Least time consuming hours (ascending)
+                    return valA(a.timeConsumingHours) - valB(b.timeConsumingHours);
+                case 'timeToMakeDaysAsc':
+                    // Least time to make days (ascending)
+                    return valA(a.timeToMakeDays) - valB(b.timeToMakeDays);
+                case 'requiresFundsAsc':
+                    // Requires funds (false first, then true)
+                    // False (0) comes before True (1)
+                    return (a.requiresFunds ? 1 : 0) - (b.requiresFunds ? 1 : 0);
+                default:
+                    return (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0); // Default to recent
+            }
+        });
 
         renderIdeas(fetchedIdeas);
     }, (error) => {
         console.error("Error fetching ideas:", error);
-        ideasList.innerHTML = `<p class="text-center text-red-600 dark:text-red-400">Failed to load ideas. Please refresh.</p>`;
+        ideasList.innerHTML = `<p class="text-center text-red-600 dark:text-red-400 text-lg">Failed to load ideas. Please refresh and check your browser console.</p>`;
     });
 }
 
@@ -173,7 +253,7 @@ function listenForIdeas() {
 function renderIdeas(ideas) {
     ideasList.innerHTML = '';
     if (ideas.length === 0) {
-        ideasList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400">No ideas submitted yet. Be the first!</p>`;
+        ideasList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 text-lg">No ideas submitted yet. Be the first!</p>`;
         return;
     }
 
@@ -186,44 +266,103 @@ function renderIdeas(ideas) {
 // --- Create Single Idea Card DOM Element ---
 function createIdeaCard(idea) {
     const cardDiv = document.createElement('div');
-    cardDiv.className = "flex items-center bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 mb-4 border border-gray-200 dark:border-gray-700 transform transition duration-300 hover:scale-[1.01]";
+    cardDiv.className = "flex items-start bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700 transform transition duration-300 hover:scale-[1.01] hover:shadow-xl relative"; // Added relative for delete button positioning
 
     const voteContainer = document.createElement('div');
-    voteContainer.className = "flex flex-col items-center mr-4";
+    voteContainer.className = "flex flex-col items-center mr-6 min-w-[50px] flex-shrink-0";
 
     const upvoteButton = document.createElement('button');
-    upvoteButton.className = `p-2 rounded-full transition duration-200 ${idea.votedBy?.up?.includes(currentUserId) ? 'bg-green-600 text-white shadow-md' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-green-500 hover:text-white dark:hover:bg-green-600'} focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800`;
+    // Refined Upvote Button Styling
+    upvoteButton.className = `
+        p-3 rounded-full transition duration-200 ease-in-out
+        ${idea.votedBy?.up?.includes(currentUserId)
+            ? 'bg-blue-700 text-white shadow-md transform scale-105' // Active state: blue background, white text, slightly larger
+            : 'bg-gray-100 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-400' // Inactive state: subtle background, muted icon, hover effect
+        }
+        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800
+        transform hover:scale-110 active:scale-95
+    `;
     upvoteButton.setAttribute('aria-label', 'Upvote');
-    upvoteButton.innerHTML = `<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 10.414V14a1 1 0 102 0v-3.586l1.293 1.293a1 1 0 001.414-1.414l-3-3z" clipRule="evenodd"></path></svg>`;
+    // Updated SVG for a clean upward triangle/arrow
+    upvoteButton.innerHTML = `<svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 7l-6 6h12z"/></svg>`;
     upvoteButton.addEventListener('click', () => handleVote(idea.id, 'upvote', idea));
 
     const netVotes = idea.upvotes - idea.downvotes;
     const voteCountSpan = document.createElement('span');
-    voteCountSpan.className = `font-bold text-xl my-1 ${netVotes > 0 ? 'text-green-600' : netVotes < 0 ? 'text-red-600' : 'text-gray-700 dark:text-gray-300'}`;
+    voteCountSpan.className = `font-bold text-2xl my-2 ${netVotes > 0 ? 'text-green-600 dark:text-green-400' : netVotes < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-800 dark:text-gray-200'}`;
     voteCountSpan.textContent = netVotes;
 
     const downvoteButton = document.createElement('button');
-    downvoteButton.className = `p-2 rounded-full transition duration-200 ${idea.votedBy?.down?.includes(currentUserId) ? 'bg-red-600 text-white shadow-md' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-red-500 hover:text-white dark:hover:bg-red-600'} focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800`;
+    // Refined Downvote Button Styling
+    downvoteButton.className = `
+        p-3 rounded-full transition duration-200 ease-in-out
+        ${idea.votedBy?.down?.includes(currentUserId)
+            ? 'bg-red-700 text-white shadow-md transform scale-105' // Active state: red background, white text, slightly larger
+            : 'bg-gray-100 hover:bg-red-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400 hover:text-red-700 dark:hover:text-red-400' // Inactive state: subtle background, muted icon, hover effect
+        }
+        focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800
+        transform hover:scale-110 active:scale-95
+    `;
     downvoteButton.setAttribute('aria-label', 'Downvote');
-    downvoteButton.innerHTML = `<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm-.707 10.293a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 9.586V6a1 1 0 10-2 0v3.586L6.707 8.707a1 1 0 00-1.414 1.414l3 3z" clipRule="evenodd"></path></svg>`;
+    // Updated SVG for a clean downward triangle/arrow
+    downvoteButton.innerHTML = `<svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 17l6-6H6z"/></svg>`;
     downvoteButton.addEventListener('click', () => handleVote(idea.id, 'downvote', idea));
 
     voteContainer.appendChild(upvoteButton);
     voteContainer.appendChild(voteCountSpan);
     voteContainer.appendChild(downvoteButton);
 
+    const ideaContentAndAttributesDiv = document.createElement('div');
+    ideaContentAndAttributesDiv.className = "flex-grow";
+
     const ideaContentDiv = document.createElement('div');
-    ideaContentDiv.className = "flex-grow text-gray-900 dark:text-gray-100 text-lg font-medium";
-    // Use marked.js to convert markdown to HTML
-    ideaContentDiv.innerHTML = marked.parse(idea.idea || ''); // Parse the idea text as Markdown
+    ideaContentDiv.className = "text-gray-800 dark:text-gray-100 text-lg leading-relaxed mb-3";
+    ideaContentDiv.innerHTML = marked.parse(idea.idea || ''); 
+    ideaContentAndAttributesDiv.appendChild(ideaContentDiv);
+
+    // Display new attributes
+    const attributesDiv = document.createElement('div');
+    attributesDiv.className = "text-sm text-gray-600 dark:text-gray-300 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1";
+    
+    const addAttribute = (label, value, unit = '') => {
+        if (value !== undefined && value !== null && value !== 0 && value !== false) { // Only display if value is not 0, null, undefined, or false
+            const p = document.createElement('p');
+            p.className = "flex items-center";
+            p.innerHTML = `<span class="font-semibold text-gray-700 dark:text-gray-200 mr-2">${label}:</span> ${value}${unit}`;
+            attributesDiv.appendChild(p);
+        }
+    };
+
+    addAttribute('Members', idea.memberCount);
+    addAttribute('Time (Hrs)', idea.timeConsumingHours, ' hrs');
+    addAttribute('Setup (Days)', idea.timeToMakeDays, ' days');
+    if (idea.requiresFunds !== undefined) {
+        const p = document.createElement('p');
+        p.className = "flex items-center";
+        p.innerHTML = `<span class="font-semibold text-gray-700 dark:text-gray-200 mr-2">Requires Funds:</span> <span class="${idea.requiresFunds ? 'text-red-500 font-bold' : 'text-green-500 font-bold'}">${idea.requiresFunds ? 'Yes' : 'No'}</span>`;
+        attributesDiv.appendChild(p);
+    }
+    
+    if (attributesDiv.children.length > 0) {
+        ideaContentAndAttributesDiv.appendChild(attributesDiv);
+    }
 
     cardDiv.appendChild(voteContainer);
-    cardDiv.appendChild(ideaContentDiv);
+    cardDiv.appendChild(ideaContentAndAttributesDiv);
+
+    // Delete Button
+    const deleteButton = document.createElement('button');
+    deleteButton.className = "absolute top-4 right-4 p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-800 dark:hover:text-white transition duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2";
+    deleteButton.setAttribute('aria-label', 'Delete idea');
+    deleteButton.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd"></path></svg>`;
+    deleteButton.addEventListener('click', () => showDeleteConfirmation(idea.id));
+    cardDiv.appendChild(deleteButton);
+
 
     return cardDiv;
 }
 
-// --- Handle Voting Logic ---
+// --- Handle Voting Logic (no changes needed here) ---
 async function handleVote(ideaId, type, currentIdeaData) {
     if (!db || !currentUserId) {
         console.error("Database or User ID not available for voting. Cannot process vote.");
@@ -279,3 +418,31 @@ async function handleVote(ideaId, type, currentIdeaData) {
         console.error("Error updating vote: ", error);
     }
 }
+
+// --- Delete Confirmation Modal Logic ---
+function showDeleteConfirmation(id) {
+    ideaToDeleteId = id; // Store the ID of the idea to be deleted
+    deleteModal.classList.remove('hidden'); // Show the modal
+}
+
+function hideDeleteConfirmation() {
+    deleteModal.classList.add('hidden'); // Hide the modal
+    ideaToDeleteId = null; // Clear the stored ID
+}
+
+// Event listeners for the modal buttons
+cancelDeleteBtn.addEventListener('click', hideDeleteConfirmation);
+confirmDeleteBtn.addEventListener('click', async () => {
+    if (ideaToDeleteId) {
+        try {
+            const ideaRef = doc(db, `artifacts/${YOUR_CUSTOM_APP_ID}/public/data/ideas`, ideaToDeleteId);
+            await deleteDoc(ideaRef);
+            console.log("Document successfully deleted!");
+        } catch (error) {
+            console.error("Error removing document: ", error);
+            // Optionally, show an error message to the user
+        } finally {
+            hideDeleteConfirmation(); // Always hide the modal
+        }
+    }
+});
