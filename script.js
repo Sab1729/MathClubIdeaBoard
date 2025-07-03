@@ -45,7 +45,7 @@ const firebaseConfig = {
 // This helps organize your data if you use the same Firebase project for multiple apps.
 // Data path will be: `artifacts/YOUR_CUSTOM_APP_ID/public/data/ideas`
 // =======================================================================================
-const YOUR_CUSTOM_APP_ID = "math-club-ideas-board-v7-edit-feature"; // New ID for this version with owner-only edit
+const YOUR_CUSTOM_APP_ID = "math-club-ideas-board-v7-edit-feature"; // Keep this ID consistent with your data
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -70,7 +70,7 @@ const boldBtn = document.getElementById('boldBtn');
 const italicBtn = document.getElementById('italicBtn');
 const underlineBtn = document.getElementById('underlineBtn');
 
-// New Attribute Inputs (for submission form)
+// New Attribute Inputs
 const memberCountInput = document.getElementById('memberCount');
 const timeConsumingHoursInput = document.getElementById('timeConsumingHours');
 const timeToMakeDaysInput = document.getElementById('timeToMakeDays');
@@ -361,7 +361,7 @@ function createIdeaCard(idea) {
         editFormatButtonsDiv.className = "flex flex-wrap gap-3 mb-4 justify-start"; // Align left for edit mode
         
         const editIdeaTextarea = document.createElement('textarea');
-        editIdeaTextarea.className = "w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 resize-y mb-4";
+        editIdeaTextarea.className = "w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-400 resize-y mb-4";
         editIdeaTextarea.rows = 5;
         editIdeaTextarea.value = ideaData.idea || '';
         
