@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="Math Club Idea Board" />
-    <title>Math Club Idea Board</title>
+    <title>Math Club Idea Nexus</title>
 
     <!-- Tailwind CSS CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,20 +14,24 @@
     <!-- Marked.js CDN for Markdown to HTML conversion -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <!-- Basic CSS for body background and scroll behavior -->
+    <!-- Custom CSS for background pattern and overall feel -->
     <style>
         body {
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            background-color: #f5f7fa; /* Very light gray/blue for professional feel */
-            overflow-x: hidden; /* Prevent horizontal scroll */
             color: #333; /* Default text color */
+            /* Subtle grid background pattern for mathy/vlog feel */
+            background-color: #f0f2f5; /* Light base */
+            background-image: linear-gradient(0deg, transparent 24%, rgba(0, 0, 0, 0.05) 25%, rgba(0, 0, 0, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 0, 0, 0.05) 75%, rgba(0, 0, 0, 0.05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(0, 0, 0, 0.05) 25%, rgba(0, 0, 0, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 0, 0, 0.05) 75%, rgba(0, 0, 0, 0.05) 76%, transparent 77%, transparent);
+            background-size: 20px 20px; /* Adjust grid size */
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
         @media (prefers-color-scheme: dark) {
             body {
-                background-color: #121212; /* Deep dark gray for dark mode */
+                background-color: #0d1117; /* Dark base for dark mode */
+                background-image: linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, 0.05) 75%, rgba(255, 255, 255, 0.05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, 0.05) 75%, rgba(255, 255, 255, 0.05) 76%, transparent 77%, transparent);
                 color: #e0e0e0; /* Lighter text color in dark mode */
             }
         }
@@ -46,7 +50,7 @@
 <body class="bg-gray-50 dark:bg-gray-950">
 
     <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-90 z-50 text-white text-3xl font-bold animate-pulse">
+    <div id="loadingOverlay" class="fixed inset-0 flex items-center justify-center bg-blue-900 bg-opacity-95 z-50 text-white text-3xl font-bold animate-pulse">
         Initializing Idea Board...
     </div>
 
@@ -55,7 +59,7 @@
         <h2 class="text-4xl font-extrabold mb-4">Connection Error!</h2>
         <p id="errorMessageText" class="text-xl mb-6">An unexpected error occurred. Please check your console for details.</p>
         <p class="text-lg">Ensure your Firebase configuration is correct and that you have enabled **Anonymous Authentication** and configured **Firestore Security Rules** correctly.</p>
-        <p class="mt-4 text-md opacity-80">FB error.</p>
+        <p class="mt-4 text-md opacity-80">This page requires a live connection to Firebase.</p>
     </div>
 
     <!-- Delete Confirmation Modal -->
@@ -71,18 +75,18 @@
     </div>
 
     <!-- Header -->
-    <header class="py-8 bg-blue-900 dark:bg-gray-800 shadow-2xl border-b-4 border-blue-700 dark:border-gray-700">
+    <header class="py-10 bg-gradient-to-r from-blue-800 to-blue-900 dark:from-gray-800 dark:to-gray-900 shadow-2xl border-b-4 border-blue-600 dark:border-gray-700">
         <div class="container mx-auto px-6 text-center">
             <h1 class="text-5xl md:text-6xl font-extrabold text-white mb-3 tracking-tight drop-shadow-lg">
                 <span class="block">Math Club</span>
-                <span class="block">Idea Board</span>
+                <span class="block">Idea Nexus</span>
             </h1>
             <p class="text-blue-200 dark:text-gray-300 text-xl md:text-2xl font-light leading-tight">
-                You can suggest Ideas or vote for them anonymously
+                Your anonymous platform for brilliant math club suggestions.
             </p>
             <p class="text-blue-300 dark:text-gray-400 text-sm mt-4 opacity-90">
-                [ignore] Your anonymous session ID: 
-                <span id="userIdDisplay" class="font-mono bg-blue-800 dark:bg-gray-700 px-3 py-1 rounded-md text-white text-opacity-90 shadow-inner">Loading...</span>
+                Your anonymous session ID: 
+                <span id="userIdDisplay" class="font-mono bg-blue-700 dark:bg-gray-700 px-3 py-1 rounded-md text-white text-opacity-90 shadow-inner">Loading...</span>
             </p>
         </div>
     </header>
@@ -90,14 +94,14 @@
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-10">
         <!-- Idea Submission Form -->
-        <form id="ideaForm" class="p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-3xl mb-12 max-w-3xl mx-auto border border-gray-200 dark:border-gray-700 transform transition duration-300 hover:shadow-4xl">
+        <form id="ideaForm" class="p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl mb-12 max-w-3xl mx-auto border border-gray-200 dark:border-gray-700 transform transition duration-300 hover:shadow-2xl">
             <h2 class="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100 text-center">Submit a New Idea</h2>
             
             <!-- Formatting Buttons -->
             <div class="flex flex-wrap gap-3 mb-4 justify-center">
-                <button type="button" id="boldBtn" class="flex items-center justify-center w-12 h-12 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold rounded-lg shadow-sm transition duration-200 text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transform hover:scale-105">B</button>
-                <button type="button" id="italicBtn" class="flex items-center justify-center w-12 h-12 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 italic rounded-lg shadow-sm transition duration-200 text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transform hover:scale-105">I</button>
-                <button type="button" id="underlineBtn" class="flex items-center justify-center w-12 h-12 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 underline rounded-lg shadow-sm transition duration-200 text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transform hover:scale-105">U</button>
+                <button type="button" id="boldBtn" class="flex items-center justify-center w-12 h-12 bg-gray-200 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold rounded-lg shadow-sm transition duration-200 text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transform hover:scale-105">B</button>
+                <button type="button" id="italicBtn" class="flex items-center justify-center w-12 h-12 bg-gray-200 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 italic rounded-lg shadow-sm transition duration-200 text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transform hover:scale-105">I</button>
+                <button type="button" id="underlineBtn" class="flex items-center justify-center w-12 h-12 bg-gray-200 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 underline rounded-lg shadow-sm transition duration-200 text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transform hover:scale-105">U</button>
             </div>
 
             <div class="mb-5">
@@ -105,7 +109,7 @@
                     id="ideaText"
                     class="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 resize-y"
                     rows="5"
-                    placeholder="Type your idea here... use **bold**, *italic*, or <u>underline</u> for formatting"
+                    placeholder="Type your idea here... Use **bold**, *italic*, or <u>underline</u> for formatting. Markdown is supported for lists and more!"
                     required
                 ></textarea>
             </div>
@@ -120,7 +124,7 @@
                 </div>
                 <div>
                     <label for="timeConsumingHours" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        <span class="font-semibold">Time (Hours):</span> (Estimated duration of event (in Hours))
+                        <span class="font-semibold">Time (Hours):</span> (Estimated hours per week/month)
                     </label>
                     <input type="number" id="timeConsumingHours" min="0" placeholder="e.g., 10" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
                 </div>
@@ -145,7 +149,7 @@
                 Submit Idea
             </button>
             <p id="formMessage" class="mt-5 text-center text-md font-medium"></p>
-            <p class="mt-4 text-xs text-gray-500 dark:text-gray-400 text-center opacity-80">Ideas are submitted anonymously.</p>
+            <p class="mt-4 text-xs text-gray-500 dark:text-gray-400 text-center opacity-80">Ideas are submitted anonymously and updated in real-time for everyone.</p>
         </form>
 
         <!-- Sort Options -->
@@ -171,8 +175,8 @@
 
     <!-- Footer -->
     <footer class="py-6 text-center text-gray-600 dark:text-gray-400 text-sm border-t border-gray-200 dark:border-gray-700 mt-12">
-        <p>&copy; <span id="currentYear"></span> Math preClub. Some rights reserved. (maybe)</p>
-        <p class="mt-1 opacity-80">QED</p>
+        <p>&copy; <span id="currentYear"></span> Math Club. All rights reserved.</p>
+        <p class="mt-1 opacity-80">Built with Vanilla JS & Firebase for an engaging experience.</p>
     </footer>
 
     <!-- Link to your external JavaScript file -->
