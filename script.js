@@ -45,7 +45,7 @@ const firebaseConfig = {
 // This helps organize your data if you use the same Firebase project for multiple apps.
 // Data path will be: `artifacts/YOUR_CUSTOM_APP_ID/public/data/ideas`
 // =======================================================================================
-const YOUR_CUSTOM_APP_ID = "math-club-ideas-board-v5-owner-delete"; // New ID for this version with owner-only delete
+const YOUR_CUSTOM_APP_ID = "math-club-ideas-board-v7-edit-feature"; // New ID for this version with owner-only edit
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -65,12 +65,12 @@ const loadingOverlay = document.getElementById('loadingOverlay');
 const errorOverlay = document.getElementById('errorOverlay');
 const errorMessageText = document.getElementById('errorMessageText');
 
-// Formatting Buttons
+// Formatting Buttons (for submission form)
 const boldBtn = document.getElementById('boldBtn');
 const italicBtn = document.getElementById('italicBtn');
 const underlineBtn = document.getElementById('underlineBtn');
 
-// New Attribute Inputs
+// New Attribute Inputs (for submission form)
 const memberCountInput = document.getElementById('memberCount');
 const timeConsumingHoursInput = document.getElementById('timeConsumingHours');
 const timeToMakeDaysInput = document.getElementById('timeToMakeDays');
@@ -146,7 +146,7 @@ ideaForm.addEventListener('submit', async (e) => {
             timeConsumingHours: timeConsumingHours,
             timeToMakeDays: timeToMakeDays,
             requiresFunds: requiresFunds,
-            submittedBy: currentUserId // <<< IMPORTANT: Store the user ID of the submitter
+            submittedBy: currentUserId // Store the user ID of the submitter for owner-only features
         });
         ideaTextInput.value = ''; // Clear input
         memberCountInput.value = ''; // Clear new inputs
@@ -169,9 +169,9 @@ function displayFormMessage(msg, colorClass) {
     }, 3000);
 }
 
-// --- Formatting Button Handlers ---
-function applyFormatting(syntaxBefore, syntaxAfter) {
-    const textarea = ideaTextInput;
+// --- Formatting Button Handlers (for submission form) ---
+function applyFormatting(syntaxBefore, syntaxAfter, textareaElement) {
+    const textarea = textareaElement || ideaTextInput; // Use provided textarea or default
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selectedText = textarea.value.substring(start, end);
@@ -190,14 +190,13 @@ function applyFormatting(syntaxBefore, syntaxAfter) {
     textarea.focus();
 }
 
-boldBtn.addEventListener('click', () => applyFormatting('**', '**'));
-italicBtn.addEventListener('click', () => applyFormatting('*', '*'));
-underlineBtn.addEventListener('click', () => applyFormatting('<u>', '</u>'));
+boldBtn.addEventListener('click', () => applyFormatting('**', '**', ideaTextInput));
+italicBtn.addEventListener('click', () => applyFormatting('*', '*', ideaTextInput));
+underlineBtn.addEventListener('click', () => applyFormatting('<u>', '</u>', ideaTextInput));
 
 // --- Sort Options Handler ---
 sortOptionsDropdown.addEventListener('change', (e) => {
     currentSortOption = e.target.value;
-    // Re-render ideas with the new sort order
     // onSnapshot will re-trigger renderIdeas with the new sort.
 });
 
@@ -264,10 +263,10 @@ function renderIdeas(ideas) {
     });
 }
 
-// --- Create Single Idea Card DOM Element ---
+// --- Create Single Idea Card DOM Element (MAJOR CHANGES HERE) ---
 function createIdeaCard(idea) {
     const cardDiv = document.createElement('div');
-    cardDiv.className = "flex items-start bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700 transform transition duration-300 hover:scale-[1.01] hover:shadow-xl relative"; // Added relative for delete button positioning
+    cardDiv.className = "flex items-start bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700 transform transition duration-300 hover:scale-[1.01] hover:shadow-xl relative";
 
     const voteContainer = document.createElement('div');
     voteContainer.className = "flex flex-col items-center mr-6 min-w-[50px] flex-shrink-0";
@@ -276,11 +275,11 @@ function createIdeaCard(idea) {
     upvoteButton.className = `
         p-3 rounded-full transition duration-200 ease-in-out
         ${idea.votedBy?.up?.includes(currentUserId)
-            ? 'bg-blue-700 text-white shadow-md transform scale-105' // Active state: blue background, white text, slightly larger
-            : 'bg-gray-100 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-400' // Inactive state: subtle background, muted icon, hover effect
+            ? 'bg-blue-600 text-white shadow-lg transform scale-110' // Active state: more vibrant blue, larger scale
+            : 'bg-gray-100 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400' // Inactive state: subtle background, muted icon, vibrant hover
         }
         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800
-        transform hover:scale-110 active:scale-95
+        active:scale-95 /* Click feedback */
     `;
     upvoteButton.setAttribute('aria-label', 'Upvote');
     upvoteButton.innerHTML = `<svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 7l-6 6h12z"/></svg>`;
@@ -295,11 +294,11 @@ function createIdeaCard(idea) {
     downvoteButton.className = `
         p-3 rounded-full transition duration-200 ease-in-out
         ${idea.votedBy?.down?.includes(currentUserId)
-            ? 'bg-red-700 text-white shadow-md transform scale-105' // Active state: red background, white text, slightly larger
-            : 'bg-gray-100 hover:bg-red-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400 hover:text-red-700 dark:hover:text-red-400' // Inactive state: subtle background, muted icon, hover effect
+            ? 'bg-red-600 text-white shadow-lg transform scale-110' // Active state: more vibrant red, larger scale
+            : 'bg-gray-100 hover:bg-red-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400' // Inactive state: subtle background, muted icon, vibrant hover
         }
         focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800
-        transform hover:scale-110 active:scale-95
+        active:scale-95
     `;
     downvoteButton.setAttribute('aria-label', 'Downvote');
     downvoteButton.innerHTML = `<svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 17l6-6H6z"/></svg>`;
@@ -309,46 +308,164 @@ function createIdeaCard(idea) {
     voteContainer.appendChild(voteCountSpan);
     voteContainer.appendChild(downvoteButton);
 
-    const ideaContentAndAttributesDiv = document.createElement('div');
-    ideaContentAndAttributesDiv.className = "flex-grow";
+    cardDiv.appendChild(voteContainer);
 
-    const ideaContentDiv = document.createElement('div');
-    ideaContentDiv.className = "text-gray-800 dark:text-gray-100 text-lg leading-relaxed mb-3";
-    ideaContentDiv.innerHTML = marked.parse(idea.idea || ''); 
-    ideaContentAndAttributesDiv.appendChild(ideaContentDiv);
+    // --- Content Wrapper: This will toggle between display and edit modes ---
+    const contentWrapper = document.createElement('div');
+    contentWrapper.className = "flex-grow";
+    cardDiv.appendChild(contentWrapper);
 
-    // Display new attributes
-    const attributesDiv = document.createElement('div');
-    attributesDiv.className = "text-sm text-gray-600 dark:text-gray-300 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1";
-    
-    const addAttribute = (label, value, unit = '') => {
-        if (value !== undefined && value !== null && value !== 0 && value !== false) { // Only display if value is not 0, null, undefined, or false
+    // --- Render Display View ---
+    const renderDisplayView = (ideaData) => {
+        contentWrapper.innerHTML = ''; // Clear previous content
+
+        const ideaContentDiv = document.createElement('div');
+        ideaContentDiv.className = "text-gray-800 dark:text-gray-100 text-lg leading-relaxed mb-3";
+        ideaContentDiv.innerHTML = marked.parse(ideaData.idea || ''); 
+        contentWrapper.appendChild(ideaContentDiv);
+
+        // Display attributes
+        const attributesDiv = document.createElement('div');
+        attributesDiv.className = "text-sm text-gray-600 dark:text-gray-300 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1";
+        
+        const addAttribute = (label, value, unit = '') => {
+            if (value !== undefined && value !== null && value !== 0 && value !== false) {
+                const p = document.createElement('p');
+                p.className = "flex items-center";
+                p.innerHTML = `<span class="font-semibold text-gray-700 dark:text-gray-200 mr-2">${label}:</span> ${value}${unit}`;
+                attributesDiv.appendChild(p);
+            }
+        };
+
+        addAttribute('Members', ideaData.memberCount);
+        addAttribute('Time (Hrs)', ideaData.timeConsumingHours, ' hrs');
+        addAttribute('Setup (Days)', ideaData.timeToMakeDays, ' days');
+        if (ideaData.requiresFunds !== undefined) {
             const p = document.createElement('p');
             p.className = "flex items-center";
-            p.innerHTML = `<span class="font-semibold text-gray-700 dark:text-gray-200 mr-2">${label}:</span> ${value}${unit}`;
+            p.innerHTML = `<span class="font-semibold text-gray-700 dark:text-gray-200 mr-2">Requires Funds:</span> <span class="${ideaData.requiresFunds ? 'text-red-500 font-bold' : 'text-green-500 font-bold'}">${ideaData.requiresFunds ? 'Yes' : 'No'}</span>`;
             attributesDiv.appendChild(p);
+        }
+        
+        if (attributesDiv.children.length > 0) {
+            contentWrapper.appendChild(attributesDiv);
         }
     };
 
-    addAttribute('Members', idea.memberCount);
-    addAttribute('Time (Hrs)', idea.timeConsumingHours, ' hrs');
-    addAttribute('Setup (Days)', idea.timeToMakeDays, ' days');
-    if (idea.requiresFunds !== undefined) {
-        const p = document.createElement('p');
-        p.className = "flex items-center";
-        p.innerHTML = `<span class="font-semibold text-gray-700 dark:text-gray-200 mr-2">Requires Funds:</span> <span class="${idea.requiresFunds ? 'text-red-500 font-bold' : 'text-green-500 font-bold'}">${idea.requiresFunds ? 'Yes' : 'No'}</span>`;
-        attributesDiv.appendChild(p);
-    }
-    
-    if (attributesDiv.children.length > 0) {
-        ideaContentAndAttributesDiv.appendChild(attributesDiv);
-    }
+    // --- Render Edit View ---
+    const renderEditView = (ideaData) => {
+        contentWrapper.innerHTML = ''; // Clear previous content
 
-    cardDiv.appendChild(voteContainer);
-    cardDiv.appendChild(ideaContentAndAttributesDiv);
+        // Formatting Buttons for Edit Mode
+        const editFormatButtonsDiv = document.createElement('div');
+        editFormatButtonsDiv.className = "flex flex-wrap gap-3 mb-4 justify-start"; // Align left for edit mode
+        
+        const editIdeaTextarea = document.createElement('textarea');
+        editIdeaTextarea.className = "w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 resize-y mb-4";
+        editIdeaTextarea.rows = 5;
+        editIdeaTextarea.value = ideaData.idea || '';
+        
+        const createEditFormatButton = (label, syntaxBefore, syntaxAfter) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = "flex items-center justify-center w-10 h-10 bg-gray-200 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold rounded-lg shadow-sm transition duration-200 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transform hover:scale-105";
+            btn.textContent = label;
+            btn.addEventListener('click', () => applyFormatting(syntaxBefore, syntaxAfter, editIdeaTextarea));
+            return btn;
+        };
 
-    // Only add the delete button if the current user is the submitter
+        editFormatButtonsDiv.appendChild(createEditFormatButton('B', '**', '**'));
+        editFormatButtonsDiv.appendChild(createEditFormatButton('I', '*', '*'));
+        editFormatButtonsDiv.appendChild(createEditFormatButton('U', '<u>', '</u>'));
+        contentWrapper.appendChild(editFormatButtonsDiv);
+        contentWrapper.appendChild(editIdeaTextarea);
+
+        // Edit Attribute Fields
+        const editAttributesDiv = document.createElement('div');
+        editAttributesDiv.className = "grid grid-cols-1 md:grid-cols-2 gap-4 mb-6";
+
+        const createNumberInput = (id, label, placeholder, value) => {
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label for="${id}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <span class="font-semibold">${label}:</span>
+                </label>
+                <input type="number" id="${id}" min="0" placeholder="${placeholder}" value="${value || ''}"
+                    class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
+            `;
+            return div;
+        };
+
+        const createCheckboxInput = (id, label, checked) => {
+            const div = document.createElement('div');
+            div.className = "flex items-center mt-4 md:mt-0";
+            div.innerHTML = `
+                <input type="checkbox" id="${id}" ${checked ? 'checked' : ''}
+                    class="h-5 w-5 text-blue-600 dark:text-blue-500 rounded border-gray-300 dark:border-gray-600 focus:ring-blue-500 dark:focus:ring-blue-400">
+                <label for="${id}" class="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <span class="font-semibold">${label}</span>
+                </label>
+            `;
+            return div;
+        };
+
+        editAttributesDiv.appendChild(createNumberInput('editMemberCount', 'Member Count', 'e.g., 5', ideaData.memberCount));
+        editAttributesDiv.appendChild(createNumberInput('editTimeConsumingHours', 'Time (Hours)', 'e.g., 10', ideaData.timeConsumingHours));
+        editAttributesDiv.appendChild(createNumberInput('editTimeToMakeDays', 'Time to Make (Days)', 'e.g., 7', ideaData.timeToMakeDays));
+        editAttributesDiv.appendChild(createCheckboxInput('editRequiresFunds', 'Requires Funds?', ideaData.requiresFunds));
+        contentWrapper.appendChild(editAttributesDiv);
+
+        // Save/Cancel Buttons
+        const actionButtonsDiv = document.createElement('div');
+        actionButtonsDiv.className = "flex justify-end space-x-4 mt-6";
+
+        const saveButton = document.createElement('button');
+        saveButton.type = 'button';
+        saveButton.className = "px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md transition duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2";
+        saveButton.textContent = 'Save Changes';
+        saveButton.addEventListener('click', async () => {
+            const updatedIdea = {
+                idea: editIdeaTextarea.value.trim(),
+                memberCount: parseInt(document.getElementById('editMemberCount').value) || 0,
+                timeConsumingHours: parseInt(document.getElementById('editTimeConsumingHours').value) || 0,
+                timeToMakeDays: parseInt(document.getElementById('editTimeToMakeDays').value) || 0,
+                requiresFunds: document.getElementById('editRequiresFunds').checked,
+                submittedBy: ideaData.submittedBy // Ensure submittedBy is preserved
+            };
+            try {
+                const ideaRef = doc(db, `artifacts/${YOUR_CUSTOM_APP_ID}/public/data/ideas`, ideaData.id);
+                await updateDoc(ideaRef, updatedIdea);
+                renderDisplayView(updatedIdea); // Re-render in display mode with new data
+            } catch (error) {
+                console.error("Error updating document: ", error);
+                // Optionally display an error message to the user
+            }
+        });
+
+        const cancelButton = document.createElement('button');
+        cancelButton.type = 'button';
+        cancelButton.className = "px-6 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold rounded-lg shadow-md transition duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2";
+        cancelButton.textContent = 'Cancel';
+        cancelButton.addEventListener('click', () => renderDisplayView(ideaData)); // Revert to original display
+
+        actionButtonsDiv.appendChild(cancelButton);
+        actionButtonsDiv.appendChild(saveButton);
+        contentWrapper.appendChild(actionButtonsDiv);
+    };
+
+    // Initial render: always display view
+    renderDisplayView(idea);
+
+    // --- Edit Button (Conditional Rendering) ---
     if (currentUserId && idea.submittedBy === currentUserId) {
+        const editButton = document.createElement('button');
+        editButton.className = "absolute top-4 right-12 p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-800 dark:hover:text-white transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2";
+        editButton.setAttribute('aria-label', 'Edit idea');
+        editButton.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.38-2.828-2.828z"></path></svg>`;
+        editButton.addEventListener('click', () => renderEditView(idea)); // Switch to edit mode
+        cardDiv.appendChild(editButton);
+
+        // Delete Button (position adjusted for edit button)
         const deleteButton = document.createElement('button');
         deleteButton.className = "absolute top-4 right-4 p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-800 dark:hover:text-white transition duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2";
         deleteButton.setAttribute('aria-label', 'Delete idea');
