@@ -45,7 +45,7 @@ const firebaseConfig = {
 // This helps organize your data if you use the same Firebase project for multiple apps.
 // Data path will be: `artifacts/YOUR_CUSTOM_APP_ID/public/data/ideas`
 // =======================================================================================
-const YOUR_CUSTOM_APP_ID = "math-club-ideas-board-v8-design-refresh"; // New ID for this version with design refresh
+const YOUR_CUSTOM_APP_ID = "math-club-ideas-board-v8-design-refresh"; // Keep this ID consistent with your data
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -54,6 +54,7 @@ const auth = getAuth(app);
 
 let currentUserId = null; // To store the anonymous user's ID
 let currentSortOption = 'recent'; // Default sort option
+let allIdeas = []; // <<< NEW: To store all fetched ideas for client-side sorting
 
 // --- DOM Elements ---
 const ideasList = document.getElementById('ideasList');
@@ -197,7 +198,7 @@ underlineBtn.addEventListener('click', () => applyFormatting('<u>', '</u>', idea
 // --- Sort Options Handler ---
 sortOptionsDropdown.addEventListener('change', (e) => {
     currentSortOption = e.target.value;
-    // onSnapshot will re-trigger renderIdeas with the new sort.
+    applyAndRenderSorting(); // <<< NEW: Call this function to re-sort and render
 });
 
 
@@ -207,63 +208,70 @@ function listenForIdeas() {
     const q = query(ideasCollectionRef);
 
     onSnapshot(q, (snapshot) => {
-        let fetchedIdeas = snapshot.docs.map(doc => ({
+        allIdeas = snapshot.docs.map(doc => ({ // <<< Store fetched ideas in allIdeas
             id: doc.id,
             ...doc.data()
         }));
-
-        // --- Apply Client-Side Sorting ---
-        fetchedIdeas.sort((a, b) => {
-            const valA = (value) => (value === undefined || value === null ? Infinity : value); // Handle undefined/null for sorting numbers
-            const valB = (value) => (value === undefined || value === null ? Infinity : value);
-
-            switch (currentSortOption) {
-                case 'recent':
-                    // Newest first (descending timestamp)
-                    return (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0);
-                case 'likes':
-                    // Most liked (net votes descending)
-                    return (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes);
-                case 'memberCountAsc':
-                    // Least members needed (ascending)
-                    return valA(a.memberCount) - valB(b.memberCount);
-                case 'timeConsumingHoursAsc':
-                    // Least time consuming hours (ascending)
-                    return valA(a.timeConsumingHours) - valB(b.timeConsumingHours);
-                case 'timeToMakeDaysAsc':
-                    // Least time to make days (ascending)
-                    return valA(a.timeToMakeDays) - valB(b.timeToMakeDays);
-                case 'requiresFundsAsc':
-                    // Requires funds (false first, then true)
-                    // False (0) comes before True (1)
-                    return (a.requiresFunds ? 1 : 0) - (b.requiresFunds ? 1 : 0);
-                default:
-                    return (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0); // Default to recent
-            }
-        });
-
-        renderIdeas(fetchedIdeas);
+        applyAndRenderSorting(); // <<< Call this function when new data arrives
     }, (error) => {
         console.error("Error fetching ideas:", error);
         ideasList.innerHTML = `<p class="text-center text-red-600 dark:text-red-400 text-lg">Failed to load ideas. Please refresh and check your browser console.</p>`;
     });
 }
 
+// --- NEW: Function to apply sorting and render ideas ---
+function applyAndRenderSorting() {
+    // Create a mutable copy of allIdeas to sort
+    let sortedIdeas = [...allIdeas]; 
+
+    sortedIdeas.sort((a, b) => {
+        const valA = (value) => (value === undefined || value === null ? Infinity : value); // Handle undefined/null for sorting numbers
+        const valB = (value) => (value === undefined || value === null ? Infinity : value);
+
+        switch (currentSortOption) {
+            case 'recent':
+                // Newest first (descending timestamp)
+                return (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0);
+            case 'likes':
+                // Most liked (net votes descending)
+                return (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes);
+            case 'memberCountAsc':
+                // Least members needed (ascending)
+                return valA(a.memberCount) - valB(b.memberCount);
+            case 'timeConsumingHoursAsc':
+                // Least time consuming hours (ascending)
+                return valA(a.timeConsumingHours) - valB(b.timeConsumingHours);
+            case 'timeToMakeDaysAsc':
+                // Least time to make days (ascending)
+                return valA(a.timeToMakeDays) - valB(b.timeToMakeDays);
+            case 'requiresFundsAsc':
+                // Requires funds (false first, then true)
+                // False (0) comes before True (1)
+                return (a.requiresFunds ? 1 : 0) - (b.requiresFunds ? 1 : 0);
+            default:
+                return (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0); // Default to recent
+        }
+    });
+
+    renderIdeas(sortedIdeas); // Render the sorted ideas
+}
+
+
 // --- Render Ideas to DOM ---
-function renderIdeas(ideas) {
+function renderIdeas(ideasToRender) { // Renamed parameter for clarity
     ideasList.innerHTML = '';
-    if (ideas.length === 0) {
+    if (ideasToRender.length === 0) {
         ideasList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 text-lg">No ideas submitted yet. Be the first!</p>`;
         return;
     }
 
-    ideas.forEach(idea => {
+    ideasToRender.forEach(idea => {
         const ideaCard = createIdeaCard(idea);
         ideasList.appendChild(ideaCard);
     });
 }
 
-// --- Create Single Idea Card DOM Element (MAJOR CHANGES HERE) ---
+// --- Create Single Idea Card DOM Element ---
 function createIdeaCard(idea) {
     const cardDiv = document.createElement('div');
     // Enhanced card styling: more pronounced shadow, subtle border
@@ -480,7 +488,7 @@ function createIdeaCard(idea) {
     return cardDiv;
 }
 
-// --- Handle Voting Logic (no changes needed here) ---
+// --- Handle Voting Logic ---
 async function handleVote(ideaId, type, currentIdeaData) {
     if (!db || !currentUserId) {
         console.error("Database or User ID not available for voting. Cannot process vote.");
@@ -524,6 +532,7 @@ async function handleVote(ideaId, type, currentIdeaData) {
             }
         }
 
+        // Only send the fields that are actually changing for voting
         await updateDoc(ideaRef, {
             upvotes: updatedUpvotes,
             downvotes: updatedDownvotes,
