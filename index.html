@@ -3,185 +3,226 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#000000" />
     <meta name="description" content="Math Club Idea Board" />
     <title>Math Club Idea Board</title>
 
-    <!-- Tailwind CSS CDN for styling -->
+    <!-- Tailwind for utility classes -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Marked.js CDN for Markdown to HTML conversion -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <!-- Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Marked.js for Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <!-- Custom CSS for background pattern and overall feel -->
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            color: #333; /* Default text color */
-            /* Subtle grid background pattern for mathy/vlog feel */
-            background-color: #f0f2f5; /* Light base */
-            background-image: linear-gradient(0deg, transparent 24%, rgba(0, 0, 0, 0.05) 25%, rgba(0, 0, 0, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 0, 0, 0.05) 75%, rgba(0, 0, 0, 0.05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(0, 0, 0, 0.05) 25%, rgba(0, 0, 0, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 0, 0, 0.05) 75%, rgba(0, 0, 0, 0.05) 76%, transparent 77%, transparent);
-            background-size: 20px 20px; /* Adjust grid size */
-            overflow-x: hidden; /* Prevent horizontal scroll */
+            background-color: #ffffff;
+            color: #222222;
+            line-height: 1.5;
         }
-        @media (prefers-color-scheme: dark) {
-            body {
-                background-color: #0d1117; /* Dark base for dark mode */
-                background-image: linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, 0.05) 75%, rgba(255, 255, 255, 0.05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, 0.05) 75%, rgba(255, 255, 255, 0.05) 76%, transparent 77%, transparent);
-                color: #e0e0e0; /* Lighter text color in dark mode */
-            }
+        
+        .dark body {
+            background-color: #000000;
+            color: #e0e0e0;
         }
-        /* Custom styles for bold/italic/underline rendered by marked.js */
-        b, strong { font-weight: 700; }
-        i, em { font-style: italic; }
-        u { text-decoration: underline; }
-
-        /* Ensure marked.js output does not break layout */
-        #ideasList div p {
-            word-break: break-word; /* Allows long words to break and wrap */
-            white-space: pre-wrap; /* Preserves whitespace and wraps text */
+        
+        .header {
+            border-bottom: 1px solid #e5e5e5;
+            background-color: #8bb1d8;
+        }
+        
+        .dark .header {
+            background-color: #000000;
+            border-bottom-color: #4e4e4e;
+        }
+        
+        .math-header {
+            font-weight: 600;
+            letter-spacing: -0.05em;
+        }
+        
+        .math-header span {
+            color: #1f68cf;
+        }
+        
+        .dark .math-header span {
+            color: #5d9cfb;
+        }
+        
+        .idea-card {
+            border-left: 3px solid transparent;
+            transition: all 0.1s ease;
+        }
+        
+        .idea-card:hover {
+            border-left-color: #3a7bd5;
+        }
+        
+        .dark .idea-card:hover {
+            border-left-color: #5d9cfb;
+        }
+        
+        .vote-count {
+            font-weight: 600;
+            color: #3a7bd5;
+        }
+        
+        .dark .vote-count {
+            color: #5d9cfb;
+        }
+        
+        .timestamp {
+            color: #6c757d;
+            font-size: 0.85rem;
+        }
+        
+        .dark .timestamp {
+            color: #9e9e9e;
+        }
+        
+        .theme-toggle {
+            color: #6c757d;
+        }
+        
+        .dark .theme-toggle {
+            color: #9e9e9e;
         }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-950">
-
+<body class="bg-white dark:bg-gray-900">
     <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="fixed inset-0 flex items-center justify-center bg-blue-900 bg-opacity-95 z-50 text-white text-3xl font-bold animate-pulse">
-        Initializing Idea Board...
+    <div id="loadingOverlay" class="fixed inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-50">
+        <div class="text-lg dark:text-gray-300">Loading...</div>
     </div>
 
     <!-- Error Overlay -->
-    <div id="errorOverlay" class="fixed inset-0 hidden flex-col items-center justify-center bg-red-900 bg-opacity-95 z-50 text-white text-center p-8 rounded-lg shadow-xl">
-        <h2 class="text-4xl font-extrabold mb-4">Connection Error!</h2>
-        <p id="errorMessageText" class="text-xl mb-6">An unexpected error occurred. Please check your console for details.</p>
-        <p class="text-lg">Ensure your Firebase configuration is correct and that you have enabled **Anonymous Authentication** and configured **Firestore Security Rules** correctly.</p>
-        <p class="mt-4 text-md opacity-80">This page requires a live connection to Firebase.</p>
+    <div id="errorOverlay" class="fixed inset-0 hidden flex-col items-center justify-center bg-white dark:bg-gray-900 z-50 p-6">
+        <h2 class="text-xl font-bold mb-2 dark:text-gray-300">Connection Error</h2>
+        <p id="errorMessageText" class="mb-4 text-center dark:text-gray-400"></p>
+        <p class="text-sm text-gray-600 dark:text-gray-500">Check Firebase configuration</p>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="fixed inset-0 hidden flex items-center justify-center bg-black bg-opacity-70 z-50">
-        <div class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-2xl max-w-md w-full text-center border border-gray-200 dark:border-gray-700">
-            <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Confirm Deletion</h3>
-            <p class="text-gray-700 dark:text-gray-300 mb-6">Are you sure you want to delete this idea? This action cannot be undone.</p>
-            <div class="flex justify-center space-x-4">
-                <button id="cancelDeleteBtn" class="px-6 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold rounded-lg shadow-md transition duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">Cancel</button>
-                <button id="confirmDeleteBtn" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-md transition duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">Delete</button>
+    <!-- Delete Modal -->
+    <div id="deleteModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+        <div class="bg-white dark:bg-gray-800 p-6 max-w-md w-full rounded">
+            <h3 class="text-lg font-bold mb-3 dark:text-gray-300">Confirm Deletion</h3>
+            <p class="mb-4 dark:text-gray-400">Are you sure you want to delete this idea?</p>
+            <div class="flex justify-end space-x-3">
+                <button id="cancelDeleteBtn" class="px-3 py-1.5 dark:text-gray-300">Cancel</button>
+                <button id="confirmDeleteBtn" class="px-3 py-1.5 bg-red-600 text-white">Delete</button>
             </div>
         </div>
     </div>
 
     <!-- Header -->
-    <header class="py-10 bg-gradient-to-r from-blue-800 to-blue-900 dark:from-gray-800 dark:to-gray-900 shadow-2xl border-b-4 border-blue-600 dark:border-gray-700">
-        <div class="container mx-auto px-6 text-center">
-            <h1 class="text-5xl md:text-6xl font-extrabold text-white mb-3 tracking-tight drop-shadow-lg">
-                <span class="block">Math Club</span>
-                <span class="block">Idea Board</span>
-            </h1>
-            <p class="text-blue-200 dark:text-gray-300 text-xl md:text-2xl font-light leading-tight">
-                anonymous platform
-            </p>
-            <p class="text-blue-300 dark:text-gray-400 text-sm mt-4 opacity-90">
-                [Ignore] Your anonymous session ID: 
-                <span id="userIdDisplay" class="font-mono bg-blue-700 dark:bg-gray-700 px-3 py-1 rounded-md text-white text-opacity-90 shadow-inner">Loading...</span>
-            </p>
+    <header class="header py-4 dark:bg-gray-900">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <div class="flex items-center">
+                <h1 class="math-header text-xl">
+                    <span class="text-2xl">Σ</span> ath Club Idea Board
+                </h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="text-sm font-mono">
+                    <span class="hidden sm:inline">[ignore] session:</span> <span id="userIdDisplay">⋯</span>
+                </div>
+                <button id="themeToggle" class="theme-toggle p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                        <path id="sunIcon" d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" class="block dark:hidden"/>
+                        <path id="moonIcon" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" class="hidden dark:block"/>
+                    </svg>
+                </button>
+            </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="container mx-auto px-4 py-10">
-        <!-- Idea Submission Form -->
-        <form id="ideaForm" class="p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl mb-12 max-w-3xl mx-auto border border-gray-200 dark:border-gray-700 transform transition duration-300 hover:shadow-2xl">
-            <h2 class="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100 text-center">Submit a New Idea</h2>
-            
-            <!-- Formatting Buttons -->
-            <div class="flex flex-wrap gap-3 mb-4 justify-center">
-                <button type="button" id="boldBtn" class="flex items-center justify-center w-12 h-12 bg-gray-200 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold rounded-lg shadow-sm transition duration-200 text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transform hover:scale-105">B</button>
-                <button type="button" id="italicBtn" class="flex items-center justify-center w-12 h-12 bg-gray-200 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 italic rounded-lg shadow-sm transition duration-200 text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transform hover:scale-105">I</button>
-                <button type="button" id="underlineBtn" class="flex items-center justify-center w-12 h-12 bg-gray-200 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 underline rounded-lg shadow-sm transition duration-200 text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transform hover:scale-105">U</button>
-            </div>
-
-            <div class="mb-5">
-                <textarea
-                    id="ideaText"
-                    class="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 resize-y"
-                    rows="5"
-                    placeholder="Type your idea here... Use **bold**, *italic*, or <u>underline</u> for formatting. Markdown is supported for lists and more!"
-                    required
-                ></textarea>
-            </div>
-
-            <!-- New Attribute Fields -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div>
-                    <label for="memberCount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        <span class="font-semibold">Member Count:</span> (How many members needed?)
-                    </label>
-                    <input type="number" id="memberCount" min="0" placeholder="e.g., 5" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
+    <main class="container mx-auto px-4 py-6">
+        <!-- Submission Form -->
+        <div class="mb-8">
+            <form id="ideaForm" class="mb-6">
+                <h2 class="text-lg font-semibold mb-3 dark:text-gray-300">Submit New Idea</h2>
+                <div class="flex space-x-2 mb-3">
+                    <button type="button" id="boldBtn" class="vote-btn px-2 dark:text-gray-400">B</button>
+                    <button type="button" id="italicBtn" class="vote-btn px-2 dark:text-gray-400">I</button>
+                    <button type="button" id="underlineBtn" class="vote-btn px-2 dark:text-gray-400">U</button>
                 </div>
-                <div>
-                    <label for="timeConsumingHours" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        <span class="font-semibold">Time (Hours):</span> (Estimated time required for the event)
-                    </label>
-                    <input type="number" id="timeConsumingHours" min="0" placeholder="e.g., 10" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
+                <textarea id="ideaText" rows="4" class="w-full p-3 mb-3 border dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300" required 
+                    placeholder="Type your idea here..."></textarea>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm mb-1 dark:text-gray-400">Members needed</label>
+                        <input type="number" id="memberCount" min="0" class="w-full p-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-1 dark:text-gray-400">Time (hours)</label>
+                        <input type="number" id="timeConsumingHours" min="0" class="w-full p-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-1 dark:text-gray-400">Setup (days)</label>
+                        <input type="number" id="timeToMakeDays" min="0" class="w-full p-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="requiresFunds" class="mr-2 dark:accent-blue-500">
+                        <label class="text-sm dark:text-gray-400">Requires funding</label>
+                    </div>
                 </div>
-                <div>
-                    <label for="timeToMakeDays" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        <span class="font-semibold">Time to Make (Days):</span> (Days needed for setup)
-                    </label>
-                    <input type="number" id="timeToMakeDays" min="0" placeholder="e.g., 7" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
-                </div>
-                <div class="flex items-center mt-4 md:mt-0">
-                    <input type="checkbox" id="requiresFunds" class="h-5 w-5 text-blue-600 dark:text-blue-500 rounded border-gray-300 dark:border-gray-600 focus:ring-blue-500 dark:focus:ring-blue-400">
-                    <label for="requiresFunds" class="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        <span class="font-semibold">Requires Funds?</span>
-                    </label>
-                </div>
-            </div>
-
-            <button
-                type="submit"
-                class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 px-6 rounded-xl shadow-xl transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 text-xl tracking-wide uppercase"
-            >
-                Submit Idea
-            </button>
-            <p id="formMessage" class="mt-5 text-center text-md font-medium"></p>
-            <p class="mt-4 text-xs text-gray-500 dark:text-gray-400 text-center opacity-80">Ideas are submitted anonymously.</p>
-        </form>
-
-        <!-- Sort Options -->
-        <div class="flex flex-col sm:flex-row justify-center items-center mb-8 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 gap-3">
-            <label for="sortOptions" class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Sort by:</label>
-            <select id="sortOptions" class="w-full sm:w-auto p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
-                <option value="recent">Most Recent</option>
-                <option value="likes">Most Liked</option>
-                <option value="memberCountAsc">Least Members Needed</option>
-                <option value="timeConsumingHoursAsc">Least Time Consuming (Hours)</option>
-                <option value="timeToMakeDaysAsc">Least Time to Make (Days)</option>
-                <option value="requiresFundsAsc">Requires Funds (No to Yes)</option>
-            </select>
+                
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded dark:bg-blue-700 dark:hover:bg-blue-600">
+                    Submit
+                </button>
+                <p id="formMessage" class="mt-2 text-sm dark:text-gray-400"></p>
+            </form>
         </div>
 
         <!-- Ideas List -->
-        <div id="ideasList" class="max-w-3xl mx-auto">
-            <h2 class="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100 text-center">Current Ideas</h2>
-            <!-- Ideas will be loaded here by JavaScript -->
-            <p class="text-center text-gray-600 dark:text-gray-400 text-lg">Loading ideas...</p>
+        <div>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold dark:text-gray-300">Ideas</h2>
+                <select id="sortOptions" class="text-sm p-1 border dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                    <option value="recent">Newest</option>
+                    <option value="likes">Top voted</option>
+                    <option value="memberCountAsc">Fewest members</option>
+                    <option value="timeConsumingHoursAsc">Least time</option>
+                </select>
+            </div>
+            
+            <div id="ideasList">
+                <p class="text-center py-8 dark:text-gray-400">Loading ideas...</p>
+            </div>
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="py-6 text-center text-gray-600 dark:text-gray-400 text-sm border-t border-gray-200 dark:border-gray-700 mt-12">
-        <p>&copy; <span id="currentYear"></span> Math Club. rights reserved (MAYBE)</p>
-        <p class="mt-1 opacity-80">QED</p>
+    <footer class="border-t mt-8 py-4 text-center text-sm text-gray-600 dark:text-gray-500 dark:border-gray-800">
+        <div class="container mx-auto px-4">
+            Math Club Idea Board • <span id="currentYear"></span>
+            <p style="text-align: center;">Q.E.D.</p>
+        </div>
     </footer>
 
     <script type="module" src="./script.js"></script>
     <script>
-        // Set current year in footer
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        });
+        
+        // Set initial theme
+        if (localStorage.getItem('theme') === 'dark' || 
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+        
+        // Set current year
         document.getElementById('currentYear').textContent = new Date().getFullYear();
     </script>
 </body>
