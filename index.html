@@ -17,6 +17,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <!-- Marked.js for Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- MathJax for LaTeX rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <style>
         body {
@@ -92,12 +95,48 @@
         .dark .theme-toggle {
             color: #9e9e9e;
         }
+
+        /* Loading animation */
+        .math-loader {
+            width: 60px;
+            aspect-ratio: 1;
+            display: grid;
+            border-radius: 50%;
+            background:
+                linear-gradient(0deg, rgb(0 0 0/50%) 30%,#0000 0 70%,rgb(0 0 0/100%) 0) 50%/8% 100%,
+                linear-gradient(90deg, rgb(0 0 0/25%) 30%,#0000 0 70%,rgb(0 0 0/75%) 0) 50%/100% 8%;
+            background-repeat: no-repeat;
+            animation: l23 1s infinite steps(12);
+        }
+        .math-loader::before,
+        .math-loader::after {
+            content: "";
+            grid-area: 1/1;
+            border-radius: 50%;
+            background: inherit;
+            opacity: 0.915;
+            transform: rotate(30deg);
+        }
+        .math-loader::after {
+            opacity: 0.83;
+            transform: rotate(60deg);
+        }
+        @keyframes l23 {
+            100% {transform: rotate(1turn)}
+        }
+
+        /* LaTeX styling */
+        .math-display {
+            overflow-x: auto;
+            margin: 1em 0;
+        }
     </style>
 </head>
 <body class="bg-white dark:bg-gray-900">
     <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="fixed inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-50">
-        <div class="text-lg dark:text-gray-300">Loading...</div>
+    <div id="loadingOverlay" class="fixed inset-0 flex flex-col items-center justify-center bg-white dark:bg-gray-900 z-50">
+        <div class="math-loader mb-4"></div>
+        <div class="text-lg dark:text-gray-300">Loading Math Club Ideas...</div>
     </div>
 
     <!-- Error Overlay -->
@@ -124,7 +163,7 @@
         <div class="container mx-auto px-4 flex justify-between items-center">
             <div class="flex items-center">
                 <h1 class="math-header text-xl">
-                    <span class="text-2xl">Σ</span> ath Club Idea Board
+                    <span class="text-2xl">शून्य</span>  club Ideaboard
                 </h1>
             </div>
             <div class="flex items-center space-x-4">
@@ -151,11 +190,16 @@
                     <button type="button" id="boldBtn" class="vote-btn px-2 dark:text-gray-400">B</button>
                     <button type="button" id="italicBtn" class="vote-btn px-2 dark:text-gray-400">I</button>
                     <button type="button" id="underlineBtn" class="vote-btn px-2 dark:text-gray-400">U</button>
+                    <button type="button" id="latexBtn" class="vote-btn px-2 dark:text-gray-400">LaTeX</button>
                 </div>
                 <textarea id="ideaText" rows="4" class="w-full p-3 mb-3 border dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300" required 
                     placeholder="Type your idea here..."></textarea>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm mb-1 dark:text-gray-400">Your Name (optional)</label>
+                        <input type="text" id="submitterName" class="w-full p-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300" placeholder="Anonymous">
+                    </div>
                     <div>
                         <label class="block text-sm mb-1 dark:text-gray-400">Members needed</label>
                         <input type="number" id="memberCount" min="0" class="w-full p-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
@@ -202,7 +246,7 @@
     <!-- Footer -->
     <footer class="border-t mt-8 py-4 text-center text-sm text-gray-600 dark:text-gray-500 dark:border-gray-800">
         <div class="container mx-auto px-4">
-            Math Club Idea Board • <span id="currentYear"></span>
+            शून्य Idea Board • <span id="currentYear"></span>
             <p style="text-align: center;">Q.E.D.</p>
         </div>
     </footer>

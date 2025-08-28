@@ -70,8 +70,10 @@ const errorMessageText = document.getElementById('errorMessageText');
 const boldBtn = document.getElementById('boldBtn');
 const italicBtn = document.getElementById('italicBtn');
 const underlineBtn = document.getElementById('underlineBtn');
+const latexBtn = document.getElementById('latexBtn'); // New LaTeX button
 
 // New Attribute Inputs
+const submitterNameInput = document.getElementById('submitterName'); // New name input
 const memberCountInput = document.getElementById('memberCount');
 const timeConsumingHoursInput = document.getElementById('timeConsumingHours');
 const timeToMakeDaysInput = document.getElementById('timeToMakeDays');
@@ -117,6 +119,7 @@ ideaForm.addEventListener('submit', async (e) => {
     const ideaContent = ideaTextInput.value.trim();
     
     // Get new attribute values, converting to numbers or boolean
+    const submitterName = submitterNameInput.value.trim() || 'Anonymous';
     const memberCount = parseInt(memberCountInput.value) || 0;
     const timeConsumingHours = parseInt(timeConsumingHoursInput.value) || 0;
     const timeToMakeDays = parseInt(timeToMakeDaysInput.value) || 0;
@@ -143,6 +146,7 @@ ideaForm.addEventListener('submit', async (e) => {
                 down: []
             },
             // Add new attributes
+            submitterName: submitterName, // Store submitter's name
             memberCount: memberCount,
             timeConsumingHours: timeConsumingHours,
             timeToMakeDays: timeToMakeDays,
@@ -150,6 +154,7 @@ ideaForm.addEventListener('submit', async (e) => {
             submittedBy: currentUserId // Store the user ID of the submitter for owner-only features
         });
         ideaTextInput.value = ''; // Clear input
+        submitterNameInput.value = ''; // Clear name input
         memberCountInput.value = ''; // Clear new inputs
         timeConsumingHoursInput.value = '';
         timeToMakeDaysInput.value = '';
@@ -194,6 +199,7 @@ function applyFormatting(syntaxBefore, syntaxAfter, textareaElement) {
 boldBtn.addEventListener('click', () => applyFormatting('**', '**', ideaTextInput));
 italicBtn.addEventListener('click', () => applyFormatting('*', '*', ideaTextInput));
 underlineBtn.addEventListener('click', () => applyFormatting('<u>', '</u>', ideaTextInput));
+latexBtn.addEventListener('click', () => applyFormatting('$$', '$$', ideaTextInput)); // LaTeX formatting
 
 // --- Sort Options Handler ---
 sortOptionsDropdown.addEventListener('change', (e) => {
@@ -269,6 +275,13 @@ function renderIdeas(ideasToRender) { // Renamed parameter for clarity
         const ideaCard = createIdeaCard(idea);
         ideasList.appendChild(ideaCard);
     });
+    
+    // Process LaTeX after rendering all ideas
+    setTimeout(() => {
+        if (window.MathJax) {
+            window.MathJax.typesetPromise && window.MathJax.typesetPromise();
+        }
+    }, 100);
 }
 
 // --- Create Single Idea Card DOM Element ---
@@ -328,8 +341,16 @@ function createIdeaCard(idea) {
     const renderDisplayView = (ideaData) => {
         contentWrapper.innerHTML = ''; // Clear previous content
 
+        // Display submitter name if available
+        if (ideaData.submitterName && ideaData.submitterName !== 'Anonymous') {
+            const nameDiv = document.createElement('div');
+            nameDiv.className = "text-sm text-gray-600 dark:text-gray-400 mb-2";
+            nameDiv.innerHTML = `<span class="font-semibold">Submitted by:</span> ${ideaData.submitterName}`;
+            contentWrapper.appendChild(nameDiv);
+        }
+
         const ideaContentDiv = document.createElement('div');
-        ideaContentDiv.className = "text-gray-800 dark:text-gray-100 text-lg leading-relaxed mb-3";
+        ideaContentDiv.className = "text-gray-800 dark:text-gray-100 text-lg leading-relaxed mb-3 math-display";
         ideaContentDiv.innerHTML = marked.parse(ideaData.idea || ''); 
         contentWrapper.appendChild(ideaContentDiv);
 
@@ -359,6 +380,14 @@ function createIdeaCard(idea) {
         if (attributesDiv.children.length > 0) {
             contentWrapper.appendChild(attributesDiv);
         }
+        
+        // Add timestamp
+        if (ideaData.createdAt) {
+            const timestampDiv = document.createElement('div');
+            timestampDiv.className = "text-xs text-gray-500 dark:text-gray-500 mt-3";
+            timestampDiv.textContent = `Submitted: ${ideaData.createdAt.toDate().toLocaleString()}`;
+            contentWrapper.appendChild(timestampDiv);
+        }
     };
 
     // --- Render Edit View ---
@@ -386,6 +415,7 @@ function createIdeaCard(idea) {
         editFormatButtonsDiv.appendChild(createEditFormatButton('B', '**', '**'));
         editFormatButtonsDiv.appendChild(createEditFormatButton('I', '*', '*'));
         editFormatButtonsDiv.appendChild(createEditFormatButton('U', '<u>', '</u>'));
+        editFormatButtonsDiv.appendChild(createEditFormatButton('$', '$', '$')); // LaTeX button
         contentWrapper.appendChild(editFormatButtonsDiv);
         contentWrapper.appendChild(editIdeaTextarea);
 
@@ -400,176 +430,182 @@ function createIdeaCard(idea) {
                     <span class="font-semibold">${label}:</span>
                 </label>
                 <input type="number" id="${id}" min="0" placeholder="${placeholder}" value="${value || ''}"
-                    class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
+                    class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-400">
             `;
             return div;
         };
 
         const createCheckboxInput = (id, label, checked) => {
             const div = document.createElement('div');
-            div.className = "flex items-center mt-4 md:mt-0";
+            div.className = "flex items-center";
             div.innerHTML = `
                 <input type="checkbox" id="${id}" ${checked ? 'checked' : ''}
-                    class="h-5 w-5 text-blue-600 dark:text-blue-500 rounded border-gray-300 dark:border-gray-600 focus:ring-blue-500 dark:focus:ring-blue-400">
-                <label for="${id}" class="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 mr-2">
+                <label for="${id}" class="text-sm font-medium text-gray-700 dark:text-gray-300">
                     <span class="font-semibold">${label}</span>
                 </label>
             `;
             return div;
         };
 
-        editAttributesDiv.appendChild(createNumberInput('editMemberCount', 'Member Count', 'e.g., 5', ideaData.memberCount));
-        editAttributesDiv.appendChild(createNumberInput('editTimeConsumingHours', 'Time (Hours)', 'e.g., 10', ideaData.timeConsumingHours));
-        editAttributesDiv.appendChild(createNumberInput('editTimeToMakeDays', 'Time to Make (Days)', 'e.g., 7', ideaData.timeToMakeDays));
-        editAttributesDiv.appendChild(createCheckboxInput('editRequiresFunds', 'Requires Funds?', ideaData.requiresFunds));
+        editAttributesDiv.appendChild(createNumberInput('edit-memberCount', 'Members', 'e.g., 3', ideaData.memberCount));
+        editAttributesDiv.appendChild(createNumberInput('edit-timeConsumingHours', 'Time (Hrs)', 'e.g., 2', ideaData.timeConsumingHours));
+        editAttributesDiv.appendChild(createNumberInput('edit-timeToMakeDays', 'Setup (Days)', 'e.g., 1', ideaData.timeToMakeDays));
+        editAttributesDiv.appendChild(createCheckboxInput('edit-requiresFunds', 'Requires Funds', ideaData.requiresFunds));
         contentWrapper.appendChild(editAttributesDiv);
 
-        // Save/Cancel Buttons
-        const actionButtonsDiv = document.createElement('div');
-        actionButtonsDiv.className = "flex justify-end space-x-4 mt-6";
+        // Action Buttons for Edit Mode
+        const editActionButtonsDiv = document.createElement('div');
+        editActionButtonsDiv.className = "flex flex-wrap gap-3 justify-start";
 
         const saveButton = document.createElement('button');
-        saveButton.type = 'button';
-        saveButton.className = "px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md transition duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2";
-        saveButton.textContent = 'Save Changes';
-        saveButton.addEventListener('click', async () => {
-            const updatedIdea = {
-                idea: editIdeaTextarea.value.trim(),
-                memberCount: parseInt(document.getElementById('editMemberCount').value) || 0,
-                timeConsumingHours: parseInt(document.getElementById('editTimeConsumingHours').value) || 0,
-                timeToMakeDays: parseInt(document.getElementById('editTimeToMakeDays').value) || 0,
-                requiresFunds: document.getElementById('editRequiresFunds').checked,
-                submittedBy: ideaData.submittedBy // Ensure submittedBy is preserved
-            };
-            try {
-                const ideaRef = doc(db, `artifacts/${YOUR_CUSTOM_APP_ID}/public/data/ideas`, ideaData.id);
-                await updateDoc(ideaRef, updatedIdea);
-                renderDisplayView(updatedIdea); // Re-render in display mode with new data
-            } catch (error) {
-                console.error("Error updating document: ", error);
-                // Optionally display an error message to the user
+        saveButton.className = "px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md transition duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transform hover:scale-105";
+        saveButton.textContent = 'Save';
+        saveButton.addEventListener('click', () => {
+            const updatedIdea = editIdeaTextarea.value.trim();
+            if (updatedIdea) {
+                const updatedData = {
+                    idea: updatedIdea,
+                    memberCount: parseInt(document.getElementById('edit-memberCount').value) || 0,
+                    timeConsumingHours: parseInt(document.getElementById('edit-timeConsumingHours').value) || 0,
+                    timeToMakeDays: parseInt(document.getElementById('edit-timeToMakeDays').value) || 0,
+                    requiresFunds: document.getElementById('edit-requiresFunds').checked
+                };
+                updateIdea(idea.id, updatedData);
+                renderDisplayView({ ...ideaData, ...updatedData }); // Switch back to display view with updated data
+            } else {
+                alert('Idea cannot be empty!');
             }
         });
 
         const cancelButton = document.createElement('button');
-        cancelButton.type = 'button';
-        cancelButton.className = "px-6 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold rounded-lg shadow-md transition duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2";
+        cancelButton.className = "px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg shadow-md transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transform hover:scale-105";
         cancelButton.textContent = 'Cancel';
-        cancelButton.addEventListener('click', () => renderDisplayView(ideaData)); // Revert to original display
+        cancelButton.addEventListener('click', () => renderDisplayView(idea));
 
-        actionButtonsDiv.appendChild(cancelButton);
-        actionButtonsDiv.appendChild(saveButton);
-        contentWrapper.appendChild(actionButtonsDiv);
+        editActionButtonsDiv.appendChild(saveButton);
+        editActionButtonsDiv.appendChild(cancelButton);
+        contentWrapper.appendChild(editActionButtonsDiv);
     };
 
-    // Initial render: always display view
+    // --- Initial Render: Display View ---
     renderDisplayView(idea);
 
-    // --- Edit Button (Conditional Rendering) ---
-    if (currentUserId && idea.submittedBy === currentUserId) {
-        const editButton = document.createElement('button');
-        // Adjusted class for better positioning and hover effect
-        editButton.className = "absolute top-4 right-12 p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-800 dark:hover:text-white transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2";
-        editButton.setAttribute('aria-label', 'Edit idea');
-        editButton.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.38-2.828-2.828z"></path></svg>`;
-        editButton.addEventListener('click', () => renderEditView(idea)); // Switch to edit mode
-        cardDiv.appendChild(editButton);
+    // --- Action Buttons (Edit, Delete) ---
+    const actionButtonsDiv = document.createElement('div');
+    actionButtonsDiv.className = "flex flex-wrap gap-3 mt-4 justify-end"; // Align right for display mode
 
-        // Delete Button (position adjusted for edit button)
+    // Only show edit/delete if current user is the submitter
+    if (idea.submittedBy === currentUserId) {
+        const editButton = document.createElement('button');
+        editButton.className = "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transform hover:scale-105";
+        editButton.textContent = 'Edit';
+        editButton.addEventListener('click', () => renderEditView(idea));
+
         const deleteButton = document.createElement('button');
-        // Adjusted class for better positioning and hover effect
-        deleteButton.className = "absolute top-4 right-4 p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-800 dark:hover:text-white transition duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2";
-        deleteButton.setAttribute('aria-label', 'Delete idea');
-        deleteButton.innerHTML = `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd"></path></svg>`;
-        deleteButton.addEventListener('click', () => showDeleteConfirmation(idea.id));
-        cardDiv.appendChild(deleteButton);
+        deleteButton.className = "px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-md transition duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transform hover:scale-105";
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', () => {
+            ideaToDeleteId = idea.id;
+            deleteModal.classList.remove('hidden');
+        });
+
+        actionButtonsDiv.appendChild(editButton);
+        actionButtonsDiv.appendChild(deleteButton);
     }
+
+    contentWrapper.appendChild(actionButtonsDiv);
 
     return cardDiv;
 }
 
-// --- Handle Voting Logic ---
-async function handleVote(ideaId, type, currentIdeaData) {
-    if (!db || !currentUserId) {
-        console.error("Database or User ID not available for voting. Cannot process vote.");
-        return;
-    }
+// --- Handle Voting ---
+async function handleVote(ideaId, voteType, idea) {
+    if (!db || !currentUserId) return;
 
     const ideaRef = doc(db, `artifacts/${YOUR_CUSTOM_APP_ID}/public/data/ideas`, ideaId);
+    const currentUpvotes = idea.upvotes || 0;
+    const currentDownvotes = idea.downvotes || 0;
+    const currentUpvoters = idea.votedBy?.up || [];
+    const currentDownvoters = idea.votedBy?.down || [];
 
-    let updatedUpvotes = currentIdeaData.upvotes;
-    let updatedDownvotes = currentIdeaData.downvotes;
-    let updatedVotedByUp = [...(currentIdeaData.votedBy?.up || [])];
-    let updatedVotedByDown = [...(currentIdeaData.votedBy?.down || [])];
+    let newUpvotes = currentUpvotes;
+    let newDownvotes = currentDownvotes;
+    let newUpvoters = [...currentUpvoters];
+    let newDownvoters = [...currentDownvoters];
 
-    const hasUpvoted = updatedVotedByUp.includes(currentUserId);
-    const hasDownvoted = updatedVotedByDown.includes(currentUserId);
+    const userAlreadyUpvoted = currentUpvoters.includes(currentUserId);
+    const userAlreadyDownvoted = currentDownvoters.includes(currentUserId);
+
+    if (voteType === 'upvote') {
+        if (userAlreadyUpvoted) {
+            // Remove upvote
+            newUpvotes = currentUpvotes - 1;
+            newUpvoters = currentUpvoters.filter(id => id !== currentUserId);
+        } else {
+            // Add upvote, remove downvote if exists
+            newUpvotes = currentUpvotes + 1;
+            newUpvoters.push(currentUserId);
+            if (userAlreadyDownvoted) {
+                newDownvotes = currentDownvotes - 1;
+                newDownvoters = currentDownvoters.filter(id => id !== currentUserId);
+            }
+        }
+    } else if (voteType === 'downvote') {
+        if (userAlreadyDownvoted) {
+            // Remove downvote
+            newDownvotes = currentDownvotes - 1;
+            newDownvoters = currentDownvoters.filter(id => id !== currentUserId);
+        } else {
+            // Add downvote, remove upvote if exists
+            newDownvotes = currentDownvotes + 1;
+            newDownvoters.push(currentUserId);
+            if (userAlreadyUpvoted) {
+                newUpvotes = currentUpvotes - 1;
+                newUpvoters = newUpvoters.filter(id => id !== currentUserId);
+            }
+        }
+    }
 
     try {
-        if (type === 'upvote') {
-            if (hasUpvoted) {
-                updatedUpvotes--;
-                updatedVotedByUp = updatedVotedByUp.filter(uid => uid !== currentUserId);
-            } else {
-                updatedUpvotes++;
-                updatedVotedByUp.push(currentUserId);
-                if (hasDownvoted) {
-                    updatedDownvotes--;
-                    updatedVotedByDown = updatedVotedByDown.filter(uid => uid !== currentUserId);
-                }
-            }
-        } else if (type === 'downvote') {
-            if (hasDownvoted) {
-                updatedDownvotes--;
-                updatedVotedByDown = updatedVotedByDown.filter(uid => uid !== currentUserId);
-            } else {
-                updatedDownvotes++;
-                updatedVotedByDown.push(currentUserId);
-                if (hasUpvoted) {
-                    updatedUpvotes--;
-                    updatedVotedByUp = updatedVotedByUp.filter(uid => uid !== currentUserId);
-                }
-            }
-        }
-
-        // Only send the fields that are actually changing for voting
         await updateDoc(ideaRef, {
-            upvotes: updatedUpvotes,
-            downvotes: updatedDownvotes,
-            votedBy: {
-                up: updatedVotedByUp,
-                down: updatedVotedByDown
-            }
+            upvotes: newUpvotes,
+            downvotes: newDownvotes,
+            'votedBy.up': newUpvoters,
+            'votedBy.down': newDownvoters
         });
     } catch (error) {
-        console.error("Error updating vote: ", error);
+        console.error("Error updating vote:", error);
     }
 }
 
-// --- Delete Confirmation Modal Logic ---
-function showDeleteConfirmation(id) {
-    ideaToDeleteId = id; // Store the ID of the idea to be deleted
-    deleteModal.classList.remove('hidden'); // Show the modal
+// --- Handle Idea Update (Edit) ---
+async function updateIdea(ideaId, updatedData) {
+    if (!db) return;
+    const ideaRef = doc(db, `artifacts/${YOUR_CUSTOM_APP_ID}/public/data/ideas`, ideaId);
+    try {
+        await updateDoc(ideaRef, updatedData);
+    } catch (error) {
+        console.error("Error updating idea:", error);
+        alert('Failed to update idea. Please try again.');
+    }
 }
 
-function hideDeleteConfirmation() {
-    deleteModal.classList.add('hidden'); // Hide the modal
-    ideaToDeleteId = null; // Clear the stored ID
-}
-
-// Event listeners for the modal buttons
-cancelDeleteBtn.addEventListener('click', hideDeleteConfirmation);
+// --- Handle Idea Deletion ---
 confirmDeleteBtn.addEventListener('click', async () => {
-    if (ideaToDeleteId) {
-        try {
-            const ideaRef = doc(db, `artifacts/${YOUR_CUSTOM_APP_ID}/public/data/ideas`, ideaToDeleteId);
-            await deleteDoc(ideaRef);
-            console.log("Document successfully deleted!");
-        } catch (error) {
-            console.error("Error removing document: ", error);
-            // Optionally, show an error message to the user
-        } finally {
-            hideDeleteConfirmation(); // Always hide the modal
-        }
+    if (!db || !ideaToDeleteId) return;
+    const ideaRef = doc(db, `artifacts/${YOUR_CUSTOM_APP_ID}/public/data/ideas`, ideaToDeleteId);
+    try {
+        await deleteDoc(ideaRef);
+        deleteModal.classList.add('hidden');
+        ideaToDeleteId = null;
+    } catch (error) {
+        console.error("Error deleting idea:", error);
+        alert('Failed to delete idea. Please try again.');
     }
+});
+
+cancelDeleteBtn.addEventListener('click', () => {
+    deleteModal.classList.add('hidden');
+    ideaToDeleteId = null;
 });
