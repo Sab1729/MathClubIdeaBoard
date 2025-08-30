@@ -172,6 +172,32 @@
             margin-left: 280px;
         }
 
+        /* Mobile dropdown styles */
+        .toc-toggle {
+            display: none;
+            background-color: var(--header-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px auto;
+            width: calc(100% - 20px);
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+        }
+
+        .toc-toggle::after {
+            content: "▼";
+            float: right;
+            font-size: 0.8em;
+            margin-top: 3px;
+        }
+
+        .toc-toggle.active::after {
+            content: "▲";
+        }
+
         @media (max-width: 1200px) {
             .container {
                 flex-direction: column;
@@ -196,8 +222,24 @@
             }
 
             .toc {
-                max-height: 200px;
+                max-height: 0;
                 margin: 0 10px;
+                overflow: hidden;
+                transition: max-height 0.3s ease-out;
+                padding: 0;
+                border: none;
+                box-shadow: none;
+            }
+            
+            .toc.active {
+                max-height: 300px;
+                padding: 1em;
+                border: 1px solid #a2a9b1;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            }
+            
+            .toc-toggle {
+                display: block;
             }
             
             .wiki-footer {
@@ -221,6 +263,7 @@
 
     <div class="container">
         <div class="toc-wrapper">
+            <button class="toc-toggle">Table of Contents</button>
             <nav class="toc">
                 <h3 class="toc-title">Contents</h3>
                 <ul>
@@ -499,7 +542,7 @@
                 
                 <section id="computing-limit">
                     <h3>Computing the limit using the expressions for \(\xi_n\) and \(\epsilon_n\)</h3>
-                    <p>Once we get the direct expression for \(\xi\) and \(\epsilon\) we can show many things. One of them is to verify the ratio limit:</p>
+                    <p>Once we get the direct expression for \(\ξ\) and \(\epsilon\) we can show many things. One of them is to verify the ratio limit:</p>
                     
                     <div class="math">
                         \[ \lim_{n \rightarrow \infty} \frac{\xi_n}{\xi_{n-1}} = \lim_{n \rightarrow \infty} \frac{\epsilon_{n-1}}{\epsilon_{n-2}} \]
@@ -563,7 +606,7 @@
                     <p>We can find the expression of higher powers of \(x\), like \(x^{n+1},\ x^{n+2},\) so on, in terms of power of \(x\) less than \(n\) by multiplying \(x\) in the equation and then substituting the known expression for powers of \(x\). In general, the powers can be written as follows:</p>
                     
                     <div class="math">
-                        \[x^m = \xi_{n-1}(m)x^{n-1}+\xi_{n-2}(m)x^{n-2}+\cdots + \xi_{1}(m)x^{1}+\xi_{0}(m)\]
+                        \[x^m = \xi_{n-1}(m)x^{n-1}+\xi_{n-2}(m)x^{n-2}+\cdots + \ξ_{1}(m)x^{1}+\xi_{0}(m)\]
                     </div>
                     
                     <p>where \(\xi_y\) are different series defined similarly, \(y\) corresponds to the power of \(x\) whose coefficient \(\xi_y\) is. \(\xi_y(m)\) is the \(m^{th}\) term of the series \(\xi_y\). Definition:</p>
@@ -659,6 +702,27 @@
                     link.classList.remove('active');
                     if (link.getAttribute('href').substring(1) === current) {
                         link.classList.add('active');
+                    }
+                });
+            });
+            
+            // Toggle mobile TOC dropdown
+            const tocToggle = document.querySelector('.toc-toggle');
+            const toc = document.querySelector('.toc');
+            
+            if (tocToggle) {
+                tocToggle.addEventListener('click', function() {
+                    toc.classList.toggle('active');
+                    tocToggle.classList.toggle('active');
+                });
+            }
+            
+            // Close TOC when clicking on a link (mobile)
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 1200) {
+                        toc.classList.remove('active');
+                        tocToggle.classList.remove('active');
                     }
                 });
             });
