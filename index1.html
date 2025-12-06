@@ -234,6 +234,34 @@
             opacity: 1;
         }
         
+        /* Scrollable palette */
+        .palette-scrollable {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .palette-scrollable::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .palette-scrollable::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        .palette-scrollable::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+        
+        .dark .palette-scrollable::-webkit-scrollbar-track {
+            background: #374151;
+        }
+        
+        .dark .palette-scrollable::-webkit-scrollbar-thumb {
+            background: #6B7280;
+        }
+        
         /* Springer typography */
         h1, h2, h3, h4 {
             font-family: 'Georgia', serif;
@@ -355,6 +383,20 @@
             background-color: #1F2937;
             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);
         }
+        
+        /* Palette category headers */
+        .palette-category-header {
+            position: sticky;
+            top: 0;
+            background-color: #F9FAFB;
+            z-index: 10;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+        
+        .dark .palette-category-header {
+            background-color: #1F2937;
+        }
     </style>
 </head>
 <body class="bg-springer-lightgray dark:bg-gray-900">
@@ -437,95 +479,170 @@
                 </button>
                 
                 <!-- Math Palette (Hidden by default) -->
-                <div id="mathPalette" class="palette-section palette-hidden mb-6 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <!-- Integrals -->
-                    <div class="mb-4">
-                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif">Integrals</div>
-                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                            <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded" data-latex="\int" data-cursor="inside">∫</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded" data-latex="\int_{a}^{b}" data-cursor="after">∫<sub>a</sub><sup>b</sup></button>
-                            <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded" data-latex="\iint" data-cursor="inside">∬</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded" data-latex="\iiint" data-cursor="inside">∭</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded" data-latex="\oint" data-cursor="inside">∮</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded" data-latex="\oint_{C}" data-cursor="after">∮<sub>C</sub></button>
+                <div id="mathPalette" class="palette-section palette-hidden">
+                    <div class="palette-scrollable mb-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <!-- Integrals -->
+                        <div class="mb-6">
+                            <div class="palette-category-header text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif flex items-center justify-between">
+                                <span class="flex items-center">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    Integrals
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                                <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-100 dark:hover:bg-blue-800/30" data-latex="\int" data-cursor="inside">∫</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-100 dark:hover:bg-blue-800/30" data-latex="\int_{a}^{b}" data-cursor="after">∫<sub>a</sub><sup>b</sup></button>
+                                <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-100 dark:hover:bg-blue-800/30" data-latex="\iint" data-cursor="inside">∬</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-100 dark:hover:bg-blue-800/30" data-latex="\iiint" data-cursor="inside">∭</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-100 dark:hover:bg-blue-800/30" data-latex="\oint" data-cursor="inside">∮</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-100 dark:hover:bg-blue-800/30" data-latex="\oint_{C}" data-cursor="after">∮<sub>C</sub></button>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <!-- Trigonometric Functions -->
-                    <div class="mb-4">
-                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif">Trigonometric Functions</div>
-                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\sin()" data-cursor="inside">sin()</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\cos()" data-cursor="inside">cos()</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\tan()" data-cursor="inside">tan()</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\cot()" data-cursor="inside">cot()</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\sec()" data-cursor="inside">sec()</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\csc()" data-cursor="inside">csc()</button>
+                        
+                        <!-- Trigonometric Functions -->
+                        <div class="mb-6">
+                            <div class="palette-category-header text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Trigonometric Functions
+                            </div>
+                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                                <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded hover:bg-purple-100 dark:hover:bg-purple-800/30" data-latex="\sin()" data-cursor="inside">sin()</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded hover:bg-purple-100 dark:hover:bg-purple-800/30" data-latex="\cos()" data-cursor="inside">cos()</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded hover:bg-purple-100 dark:hover:bg-purple-800/30" data-latex="\tan()" data-cursor="inside">tan()</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded hover:bg-purple-100 dark:hover:bg-purple-800/30" data-latex="\cot()" data-cursor="inside">cot()</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded hover:bg-purple-100 dark:hover:bg-purple-800/30" data-latex="\sec()" data-cursor="inside">sec()</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded hover:bg-purple-100 dark:hover:bg-purple-800/30" data-latex="\csc()" data-cursor="inside">csc()</button>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <!-- Inverse Trigonometric -->
-                    <div class="mb-4">
-                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif">Inverse Trigonometric</div>
-                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\arcsin()" data-cursor="inside">sin⁻¹()</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\arccos()" data-cursor="inside">cos⁻¹()</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\arctan()" data-cursor="inside">tan⁻¹()</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\operatorname{arccot}()" data-cursor="inside">cot⁻¹()</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\operatorname{arcsec}()" data-cursor="inside">sec⁻¹()</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\operatorname{arccsc}()" data-cursor="inside">csc⁻¹()</button>
+                        
+                        <!-- Inverse Trigonometric -->
+                        <div class="mb-6">
+                            <div class="palette-category-header text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Inverse Trigonometric
+                            </div>
+                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                                <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded hover:bg-purple-100 dark:hover:bg-purple-800/30" data-latex="\arcsin()" data-cursor="inside">sin⁻¹()</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded hover:bg-purple-100 dark:hover:bg-purple-800/30" data-latex="\arccos()" data-cursor="inside">cos⁻¹()</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded hover:bg-purple-100 dark:hover:bg-purple-800/30" data-latex="\arctan()" data-cursor="inside">tan⁻¹()</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded hover:bg-purple-100 dark:hover:bg-purple-800/30" data-latex="\operatorname{arccot}()" data-cursor="inside">cot⁻¹()</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded hover:bg-purple-100 dark:hover:bg-purple-800/30" data-latex="\operatorname{arcsec}()" data-cursor="inside">sec⁻¹()</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded hover:bg-purple-100 dark:hover:bg-purple-800/30" data-latex="\operatorname{arccsc}()" data-cursor="inside">csc⁻¹()</button>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <!-- Logarithms & Exponentials -->
-                    <div class="mb-4">
-                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif">Logarithms & Exponentials</div>
-                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                            <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded" data-latex="\ln()" data-cursor="inside">ln()</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded" data-latex="\log()" data-cursor="inside">log()</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded" data-latex="\log_{10}()" data-cursor="inside">log₁₀()</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded" data-latex="\log_{2}()" data-cursor="inside">log₂()</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded" data-latex="e^{}" data-cursor="inside">e^{}</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded" data-latex="a^{}" data-cursor="inside">a^{}</button>
+                        
+                        <!-- Logarithms & Exponentials -->
+                        <div class="mb-6">
+                            <div class="palette-category-header text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                </svg>
+                                Logarithms & Exponentials
+                            </div>
+                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                                <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded hover:bg-green-100 dark:hover:bg-green-800/30" data-latex="\ln()" data-cursor="inside">ln()</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded hover:bg-green-100 dark:hover:bg-green-800/30" data-latex="\log()" data-cursor="inside">log()</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded hover:bg-green-100 dark:hover:bg-green-800/30" data-latex="\log_{10}()" data-cursor="inside">log₁₀()</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded hover:bg-green-100 dark:hover:bg-green-800/30" data-latex="\log_{2}()" data-cursor="inside">log₂()</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded hover:bg-green-100 dark:hover:bg-green-800/30" data-latex="e^{}" data-cursor="inside">e^{}</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded hover:bg-green-100 dark:hover:bg-green-800/30" data-latex="a^{}" data-cursor="inside">a^{}</button>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <!-- Fractions, Roots & Powers -->
-                    <div class="mb-4">
-                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif">Fractions, Roots & Powers</div>
-                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                            <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded" data-latex="\frac{}{}" data-cursor="numerator">a/b</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded" data-latex="\sqrt{}" data-cursor="inside">√</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded" data-latex="\sqrt[]{}" data-cursor="index">ⁿ√</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded" data-latex="^{}" data-cursor="inside">xⁿ</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded" data-latex="_{}" data-cursor="inside">xₙ</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded" data-latex="\infty" data-cursor="after">∞</button>
+                        
+                        <!-- Fractions, Roots & Powers -->
+                        <div class="mb-6">
+                            <div class="palette-category-header text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                                </svg>
+                                Fractions, Roots & Powers
+                            </div>
+                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                                <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded hover:bg-yellow-100 dark:hover:bg-yellow-800/30" data-latex="\frac{}{}" data-cursor="numerator">a/b</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded hover:bg-yellow-100 dark:hover:bg-yellow-800/30" data-latex="\sqrt{}" data-cursor="inside">√</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded hover:bg-yellow-100 dark:hover:bg-yellow-800/30" data-latex="\sqrt[]{}" data-cursor="index">ⁿ√</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded hover:bg-yellow-100 dark:hover:bg-yellow-800/30" data-latex="^{}" data-cursor="inside">xⁿ</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded hover:bg-yellow-100 dark:hover:bg-yellow-800/30" data-latex="_{}" data-cursor="inside">xₙ</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded hover:bg-yellow-100 dark:hover:bg-yellow-800/30" data-latex="\infty" data-cursor="after">∞</button>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <!-- Greek Letters -->
-                    <div class="mb-4">
-                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif">Greek Letters</div>
-                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                            <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded" data-latex="\alpha" data-cursor="after">α</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded" data-latex="\beta" data-cursor="after">β</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded" data-latex="\gamma" data-cursor="after">γ</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded" data-latex="\theta" data-cursor="after">θ</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded" data-latex="\pi" data-cursor="after">π</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded" data-latex="\phi" data-cursor="after">φ</button>
+                        
+                        <!-- Greek Letters -->
+                        <div class="mb-6">
+                            <div class="palette-category-header text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                                </svg>
+                                Greek Letters
+                            </div>
+                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                                <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded hover:bg-red-100 dark:hover:bg-red-800/30" data-latex="\alpha" data-cursor="after">α</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded hover:bg-red-100 dark:hover:bg-red-800/30" data-latex="\beta" data-cursor="after">β</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded hover:bg-red-100 dark:hover:bg-red-800/30" data-latex="\gamma" data-cursor="after">γ</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded hover:bg-red-100 dark:hover:bg-red-800/30" data-latex="\theta" data-cursor="after">θ</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded hover:bg-red-100 dark:hover:bg-red-800/30" data-latex="\pi" data-cursor="after">π</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded hover:bg-red-100 dark:hover:bg-red-800/30" data-latex="\phi" data-cursor="after">φ</button>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <!-- Brackets & Parentheses -->
-                    <div class="mb-4">
-                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif">Brackets & Parentheses</div>
-                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                            <button type="button" class="palette-button px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded" data-latex="()" data-cursor="inside">()</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded" data-latex="[]" data-cursor="inside">[]</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded" data-latex="\{\}" data-cursor="inside">{}</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded" data-latex="\langle\rangle" data-cursor="inside">⟨⟩</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded" data-latex="\lfloor\rfloor" data-cursor="inside">⌊⌋</button>
-                            <button type="button" class="palette-button px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded" data-latex="\lceil\rceil" data-cursor="inside">⌈⌉</button>
+                        
+                        <!-- Brackets & Parentheses -->
+                        <div class="mb-6">
+                            <div class="palette-category-header text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Brackets & Parentheses
+                            </div>
+                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                                <button type="button" class="palette-button px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded hover:bg-indigo-100 dark:hover:bg-indigo-800/30" data-latex="()" data-cursor="inside">()</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded hover:bg-indigo-100 dark:hover:bg-indigo-800/30" data-latex="[]" data-cursor="inside">[]</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded hover:bg-indigo-100 dark:hover:bg-indigo-800/30" data-latex="\{\}" data-cursor="inside">{}</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded hover:bg-indigo-100 dark:hover:bg-indigo-800/30" data-latex="\langle\rangle" data-cursor="inside">⟨⟩</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded hover:bg-indigo-100 dark:hover:bg-indigo-800/30" data-latex="\lfloor\rfloor" data-cursor="inside">⌊⌋</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded hover:bg-indigo-100 dark:hover:bg-indigo-800/30" data-latex="\lceil\rceil" data-cursor="inside">⌈⌉</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Operators -->
+                        <div class="mb-6">
+                            <div class="palette-category-header text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                Operators
+                            </div>
+                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                                <button type="button" class="palette-button px-3 py-2 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700" data-latex="+" data-cursor="after">+</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700" data-latex="-" data-cursor="after">−</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700" data-latex="\times" data-cursor="after">×</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700" data-latex="\div" data-cursor="after">÷</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700" data-latex="=" data-cursor="after">=</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700" data-latex="\neq" data-cursor="after">≠</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Calculus -->
+                        <div class="mb-6">
+                            <div class="palette-category-header text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                                Calculus
+                            </div>
+                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                                <button type="button" class="palette-button px-3 py-2 bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300 rounded hover:bg-pink-100 dark:hover:bg-pink-800/30" data-latex="\frac{d}{dx}" data-cursor="after">d/dx</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300 rounded hover:bg-pink-100 dark:hover:bg-pink-800/30" data-latex="\frac{\partial}{\partial x}" data-cursor="after">∂/∂x</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300 rounded hover:bg-pink-100 dark:hover:bg-pink-800/30" data-latex="\nabla" data-cursor="after">∇</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300 rounded hover:bg-pink-100 dark:hover:bg-pink-800/30" data-latex="\Delta" data-cursor="after">Δ</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300 rounded hover:bg-pink-100 dark:hover:bg-pink-800/30" data-latex="\lim_{x \to a}" data-cursor="after">lim</button>
+                                <button type="button" class="palette-button px-3 py-2 bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300 rounded hover:bg-pink-100 dark:hover:bg-pink-800/30" data-latex="\sum_{i=1}^{n}" data-cursor="after">∑</button>
+                            </div>
                         </div>
                     </div>
                 </div>
