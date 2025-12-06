@@ -1,4 +1,4 @@
-// script.js
+// script1.js
 
 // Import Firebase modules using CDN URLs
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -134,29 +134,6 @@ function displayFormMessage(msg, colorClass) {
     }, 3000);
 }
 
-// --- Palette Button Handler (added to script.js) ---
-document.addEventListener('DOMContentLoaded', () => {
-    // Add event listeners to all palette buttons
-    document.querySelectorAll('.palette-button').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const latex = e.target.getAttribute('data-latex');
-            const textarea = problemTextInput;
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            const selectedText = textarea.value.substring(start, end);
-            const newText = textarea.value.substring(0, start) + 
-                            latex + 
-                            textarea.value.substring(end);
-            textarea.value = newText;
-            textarea.focus();
-            
-            // Move cursor to end of inserted text
-            const newCursorPos = start + latex.length;
-            textarea.setSelectionRange(newCursorPos, newCursorPos);
-        });
-    });
-});
-
 // --- Sort Handler ---
 sortOptionsDropdown.addEventListener('change', (e) => {
     currentSortOption = e.target.value;
@@ -219,6 +196,8 @@ function updateProblemsCount() {
 
 // --- Apply Sorting and Render with Pagination ---
 function applyAndRenderSorting() {
+    console.log("applyAndRenderSorting called. Current page:", currentPage, "Items per page:", itemsPerPage, "All problems:", allProblems.length);
+    
     let sortedProblems = [...allProblems];
     
     sortedProblems.sort((a, b) => {
@@ -279,8 +258,13 @@ function updatePagination(totalFilteredProblems) {
         
         prevBtn = document.createElement('button');
         prevBtn.id = 'prevBtn';
-        prevBtn.className = "px-4 py-2 border dark:border-gray-700 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
-        prevBtn.textContent = '← Previous';
+        prevBtn.className = "px-4 py-2 border dark:border-gray-700 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center";
+        prevBtn.innerHTML = `
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Previous
+        `;
         prevBtn.addEventListener('click', () => {
             if (currentPage > 0) {
                 currentPage--;
@@ -290,12 +274,17 @@ function updatePagination(totalFilteredProblems) {
         
         pageInfo = document.createElement('span');
         pageInfo.id = 'pageInfo';
-        pageInfo.className = "text-sm dark:text-gray-400";
+        pageInfo.className = "text-sm dark:text-gray-400 font-serif";
         
         nextBtn = document.createElement('button');
         nextBtn.id = 'nextBtn';
-        nextBtn.className = "px-4 py-2 border dark:border-gray-700 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
-        nextBtn.textContent = 'Next →';
+        nextBtn.className = "px-4 py-2 border dark:border-gray-700 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center";
+        nextBtn.innerHTML = `
+            Next
+            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        `;
         nextBtn.addEventListener('click', () => {
             const totalPages = Math.ceil(totalFilteredProblems / itemsPerPage);
             if (currentPage < totalPages - 1) {
@@ -315,12 +304,16 @@ function updatePagination(totalFilteredProblems) {
     const startItem = (currentPage * itemsPerPage) + 1;
     const endItem = Math.min((currentPage + 1) * itemsPerPage, totalFilteredProblems);
     
-    pageInfo.textContent = `Page ${currentPage + 1} of ${totalPages} (${startItem}-${endItem} of ${totalFilteredProblems})`;
+    // Make sure we show correct info even when there are 0 items
+    const displayStartItem = totalFilteredProblems > 0 ? startItem : 0;
+    const displayEndItem = totalFilteredProblems > 0 ? endItem : 0;
+    
+    pageInfo.textContent = `Page ${currentPage + 1} of ${totalPages || 1} (${displayStartItem}-${displayEndItem} of ${totalFilteredProblems})`;
     prevBtn.disabled = currentPage === 0;
-    nextBtn.disabled = currentPage >= totalPages - 1 || totalPages === 0;
+    nextBtn.disabled = currentPage >= totalPages - 1 || totalPages <= 1;
     
     // Show/hide pagination
-    if (totalFilteredProblems <= itemsPerPage || totalPages === 0) {
+    if (totalFilteredProblems <= itemsPerPage || totalPages <= 1) {
         paginationDiv.classList.add('hidden');
     } else {
         paginationDiv.classList.remove('hidden');
@@ -334,8 +327,11 @@ function renderProblems(problems) {
     if (problems.length === 0) {
         problemsList.innerHTML = `
             <div class="text-center py-12">
-                <p class="text-gray-500 dark:text-gray-400 text-lg mb-4">No integral problems found!</p>
-                <p class="text-gray-400 dark:text-gray-500 text-sm">Be the first to submit an integral problem.</p>
+                <svg class="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-gray-500 dark:text-gray-400 text-lg mb-4 font-serif">No integral problems found!</p>
+                <p class="text-gray-400 dark:text-gray-500 text-sm font-serif">Be the first to submit an integral problem.</p>
             </div>`;
         return;
     }
@@ -360,7 +356,7 @@ function renderProblems(problems) {
 // --- Create Problem Card ---
 function createProblemCard(problem) {
     const cardDiv = document.createElement('div');
-    cardDiv.className = "problem-card rounded-lg p-6 mb-6";
+    cardDiv.className = "problem-card rounded-lg p-6";
     
     // Header with difficulty badge and ratings count
     const headerDiv = document.createElement('div');
@@ -397,7 +393,7 @@ function createProblemCard(problem) {
     const problemDiv = document.createElement('div');
     problemDiv.className = "mb-4";
     problemDiv.innerHTML = `
-        <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">Problem:</div>
+        <div class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-serif">Problem:</div>
         <div class="math-display bg-gray-50 dark:bg-gray-800 rounded p-4 font-mono text-lg overflow-x-auto">
             \\[ ${problem.problem} \\]
         </div>
@@ -406,22 +402,46 @@ function createProblemCard(problem) {
     
     // Copy Problem LaTeX Button
     const copyProblemBtn = document.createElement('button');
-    copyProblemBtn.className = "text-xs px-3 py-1 mb-4 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors";
-    copyProblemBtn.textContent = '📋 Copy Problem LaTeX';
+    copyProblemBtn.className = "text-xs px-3 py-1 mb-4 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center";
+    copyProblemBtn.innerHTML = `
+        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+        Copy Problem LaTeX
+    `;
     copyProblemBtn.addEventListener('click', () => {
         navigator.clipboard.writeText(problem.problem).then(() => {
-            const originalText = copyProblemBtn.textContent;
-            copyProblemBtn.textContent = '✅ Copied!';
+            copyProblemBtn.innerHTML = `
+                <svg class="w-3 h-3 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Copied!
+            `;
             copyProblemBtn.classList.add('bg-green-100', 'dark:bg-green-900');
             setTimeout(() => {
-                copyProblemBtn.textContent = originalText;
+                copyProblemBtn.innerHTML = `
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Copy Problem LaTeX
+                `;
                 copyProblemBtn.classList.remove('bg-green-100', 'dark:bg-green-900');
             }, 2000);
         }).catch(err => {
             console.error('Failed to copy: ', err);
-            copyProblemBtn.textContent = '❌ Failed to copy';
+            copyProblemBtn.innerHTML = `
+                <svg class="w-3 h-3 mr-1 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Failed to copy
+            `;
             setTimeout(() => {
-                copyProblemBtn.textContent = '📋 Copy Problem LaTeX';
+                copyProblemBtn.innerHTML = `
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Copy Problem LaTeX
+                `;
             }, 2000);
         });
     });
@@ -432,9 +452,12 @@ function createProblemCard(problem) {
     answerDiv.className = "answer-section hidden";
     answerDiv.innerHTML = `
         <div class="flex justify-between items-center mb-2">
-            <div class="text-sm font-medium text-gray-700 dark:text-gray-300">Answer:</div>
-            <button class="copy-answer-latex-btn text-xs px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors">
-                📋 Copy Answer LaTeX
+            <div class="text-sm font-medium text-gray-700 dark:text-gray-300 font-serif">Answer:</div>
+            <button class="copy-answer-latex-btn text-xs px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors flex items-center">
+                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                Copy Answer LaTeX
             </button>
         </div>
         <div class="math-display font-mono text-lg overflow-x-auto">
@@ -447,18 +470,18 @@ function createProblemCard(problem) {
     const ratingDiv = document.createElement('div');
     ratingDiv.className = "mb-4";
     ratingDiv.innerHTML = `
-        <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">How difficult was it? (1=easiest, 5=hardest):</div>
+        <div class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-serif">How difficult was it? (1=easiest, 5=hardest):</div>
         <div class="flex space-x-1">
             ${[1,2,3,4,5].map(num => {
                 const userRating = problem.difficultyRatings && problem.difficultyRatings[currentUserId];
                 const isActive = userRating === num;
                 return `
-                    <button class="difficulty-btn px-3 py-1 rounded text-sm font-medium transition-colors
+                    <button class="difficulty-btn px-3 py-1 rounded text-sm font-medium transition-colors rating-btn
                         ${isActive 
-                            ? num <= 2 ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' 
-                            : num === 3 ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
-                            : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
-                            : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'
+                            ? num <= 2 ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border border-green-300 dark:border-green-700' 
+                            : num === 3 ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-700'
+                            : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border border-red-300 dark:border-red-700'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-700'
                         }"
                         data-rating="${num}" data-problem-id="${problem.id}">
                         ${num}
@@ -478,13 +501,37 @@ function createProblemCard(problem) {
     leftActions.className = "flex items-center space-x-4";
     
     const showAnswerBtn = document.createElement('button');
-    showAnswerBtn.className = "text-sm px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors";
-    showAnswerBtn.textContent = 'Show Answer';
+    showAnswerBtn.className = "text-sm px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors flex items-center";
+    showAnswerBtn.innerHTML = `
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+        <span>Show Answer</span>
+    `;
+    
     showAnswerBtn.addEventListener('click', () => {
         answerDiv.classList.toggle('hidden');
-        showAnswerBtn.textContent = answerDiv.classList.contains('hidden') ? 'Show Answer' : 'Hide Answer';
-        showAnswerBtn.classList.toggle('bg-blue-100', answerDiv.classList.contains('hidden'));
-        showAnswerBtn.classList.toggle('bg-blue-200', !answerDiv.classList.contains('hidden'));
+        if (answerDiv.classList.contains('hidden')) {
+            showAnswerBtn.innerHTML = `
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span>Show Answer</span>
+            `;
+            showAnswerBtn.classList.add('bg-blue-100', 'dark:bg-blue-900');
+            showAnswerBtn.classList.remove('bg-blue-200', 'dark:bg-blue-800');
+        } else {
+            showAnswerBtn.innerHTML = `
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                </svg>
+                <span>Hide Answer</span>
+            `;
+            showAnswerBtn.classList.remove('bg-blue-100', 'dark:bg-blue-900');
+            showAnswerBtn.classList.add('bg-blue-200', 'dark:bg-blue-800');
+        }
     });
     
     leftActions.appendChild(showAnswerBtn);
@@ -495,13 +542,23 @@ function createProblemCard(problem) {
     
     if (problem.submittedBy === currentUserId) {
         const editBtn = document.createElement('button');
-        editBtn.className = "text-sm px-3 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded hover:bg-yellow-200 dark:hover:bg-yellow-800 transition-colors";
-        editBtn.textContent = '✏️ Edit';
+        editBtn.className = "text-sm px-3 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded hover:bg-yellow-200 dark:hover:bg-yellow-800 transition-colors flex items-center";
+        editBtn.innerHTML = `
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Edit
+        `;
         editBtn.addEventListener('click', () => showEditForm(problem, cardDiv));
         
         const deleteBtn = document.createElement('button');
-        deleteBtn.className = "text-sm px-3 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded hover:bg-red-200 dark:hover:bg-red-800 transition-colors";
-        deleteBtn.textContent = '🗑️ Delete';
+        deleteBtn.className = "text-sm px-3 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded hover:bg-red-200 dark:hover:bg-red-800 transition-colors flex items-center";
+        deleteBtn.innerHTML = `
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 011.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Delete
+        `;
         deleteBtn.addEventListener('click', () => {
             problemToDeleteId = problem.id;
             deleteModal.classList.remove('hidden');
@@ -518,8 +575,13 @@ function createProblemCard(problem) {
     // Add timestamp
     if (problem.createdAt) {
         const timestampDiv = document.createElement('div');
-        timestampDiv.className = "text-xs text-gray-500 dark:text-gray-500 mt-4 pt-2 border-t dark:border-gray-700";
-        timestampDiv.textContent = `Submitted: ${problem.createdAt.toDate().toLocaleString()}`;
+        timestampDiv.className = "text-xs text-gray-500 dark:text-gray-500 mt-4 pt-2 border-t dark:border-gray-700 flex items-center";
+        timestampDiv.innerHTML = `
+            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Submitted: ${problem.createdAt.toDate().toLocaleString()}
+        `;
         cardDiv.appendChild(timestampDiv);
     }
     
@@ -538,18 +600,37 @@ function createProblemCard(problem) {
     if (copyAnswerBtn) {
         copyAnswerBtn.addEventListener('click', (e) => {
             navigator.clipboard.writeText(problem.answer).then(() => {
-                const originalText = e.target.textContent;
-                e.target.textContent = '✅ Copied!';
+                e.target.innerHTML = `
+                    <svg class="w-3 h-3 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Copied!
+                `;
                 e.target.classList.add('bg-green-100', 'dark:bg-green-900', 'text-green-800', 'dark:text-green-200');
                 setTimeout(() => {
-                    e.target.textContent = originalText;
+                    e.target.innerHTML = `
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Copy Answer LaTeX
+                    `;
                     e.target.classList.remove('bg-green-100', 'dark:bg-green-900', 'text-green-800', 'dark:text-green-200');
                 }, 2000);
             }).catch(err => {
                 console.error('Failed to copy: ', err);
-                e.target.textContent = '❌ Failed to copy';
+                e.target.innerHTML = `
+                    <svg class="w-3 h-3 mr-1 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Failed to copy
+                `;
                 setTimeout(() => {
-                    e.target.textContent = '📋 Copy Answer LaTeX';
+                    e.target.innerHTML = `
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Copy Answer LaTeX
+                    `;
                 }, 2000);
             });
         });
@@ -562,24 +643,39 @@ function createProblemCard(problem) {
 function showEditForm(problem, cardDiv) {
     // Create edit form
     const editForm = document.createElement('div');
-    editForm.className = "mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg";
+    editForm.className = "mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700";
     
     editForm.innerHTML = `
-        <div class="text-sm font-medium mb-3 dark:text-gray-300">Edit Problem</div>
+        <div class="flex items-center mb-3">
+            <svg class="w-4 h-4 text-springer-blue dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            <div class="text-sm font-medium dark:text-gray-300 font-serif">Edit Problem</div>
+        </div>
         
         <div class="mb-3">
-            <label class="block text-xs mb-1 dark:text-gray-400">Problem (LaTeX):</label>
-            <textarea id="edit-problem-${problem.id}" rows="3" class="w-full p-2 text-sm border dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 font-mono">${problem.problem}</textarea>
+            <label class="block text-xs mb-1 dark:text-gray-400 font-serif">Problem (LaTeX):</label>
+            <textarea id="edit-problem-${problem.id}" rows="3" class="springer-input w-full text-sm font-mono">${problem.problem}</textarea>
         </div>
         
         <div class="mb-4">
-            <label class="block text-xs mb-1 dark:text-gray-400">Answer (LaTeX):</label>
-            <textarea id="edit-answer-${problem.id}" rows="2" class="w-full p-2 text-sm border dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 font-mono">${problem.answer}</textarea>
+            <label class="block text-xs mb-1 dark:text-gray-400 font-serif">Answer (LaTeX):</label>
+            <textarea id="edit-answer-${problem.id}" rows="2" class="springer-input w-full text-sm font-mono">${problem.answer}</textarea>
         </div>
         
         <div class="flex space-x-2">
-            <button id="save-edit-${problem.id}" class="text-xs px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">Save</button>
-            <button id="cancel-edit-${problem.id}" class="text-xs px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700">Cancel</button>
+            <button id="save-edit-${problem.id}" class="text-xs px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 flex items-center">
+                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Save
+            </button>
+            <button id="cancel-edit-${problem.id}" class="text-xs px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 flex items-center">
+                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Cancel
+            </button>
         </div>
     `;
     

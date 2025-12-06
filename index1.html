@@ -10,11 +10,28 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class'
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        springer: {
+                            blue: '#005AA3',
+                            lightblue: '#E6F2FF',
+                            gray: '#2D3748',
+                            lightgray: '#F8F9FA',
+                            darkblue: '#003A6B'
+                        }
+                    },
+                    fontFamily: {
+                        'serif': ['Georgia', 'Times New Roman', 'serif'],
+                        'sans': ['Inter', 'Helvetica', 'Arial', 'sans-serif']
+                    }
+                }
+            }
         }
     </script>
     <!-- Inter font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Marked.js for Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- MathJax for LaTeX rendering -->
@@ -30,155 +47,173 @@
         }
         
         .dark body {
-            background-color: #202124;
-            color: #e8eaed;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
         }
         
         .header {
             background-color: #ffffff;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e5e7eb;
         }
         
         .dark .header {
-            background-color: #202124;
-            border-bottom-color: #5f6368;
+            background-color: #1a1a1a;
+            border-bottom-color: #374151;
         }
         
         .integral-header {
             font-weight: 600;
             letter-spacing: -0.025em;
+            font-family: 'Georgia', serif;
         }
         
         .integral-header span {
-            color: #d93025;
+            color: #005AA3;
         }
         
         .dark .integral-header span {
-            color: #f28b82;
+            color: #4DABF7;
         }
         
         .problem-card {
             background-color: #ffffff;
-            border: 1px solid #e0e0e0;
-            transition: all 0.15s ease;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
         
         .dark .problem-card {
-            background-color: #292a2d;
-            border-color: #5f6368;
+            background-color: #1f2937;
+            border-color: #374151;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
         
         .problem-card:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,90,163,0.08);
         }
         
         .dark .problem-card:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(77,171,247,0.1);
         }
         
         .difficulty-badge {
             padding: 0.25rem 0.75rem;
-            border-radius: 12px;
+            border-radius: 4px;
             font-size: 0.75rem;
             font-weight: 500;
+            letter-spacing: 0.025em;
         }
         
         .difficulty-easy {
-            background-color: #e6f4ea;
-            color: #137333;
+            background-color: #E6F2FF;
+            color: #005AA3;
+            border: 1px solid #B3D9FF;
         }
         
         .dark .difficulty-easy {
-            background-color: #1e3a2a;
-            color: #81c995;
+            background-color: #1E3A5F;
+            color: #93C5FD;
+            border-color: #374151;
         }
         
         .difficulty-medium {
-            background-color: #e8f0fe;
-            color: #1967d2;
+            background-color: #F0F9FF;
+            color: #0066CC;
+            border: 1px solid #B3D9FF;
         }
         
         .dark .difficulty-medium {
-            background-color: #1c3a5f;
-            color: #8ab4f8;
+            background-color: #1E3A5F;
+            color: #60A5FA;
+            border-color: #374151;
         }
         
         .difficulty-hard {
-            background-color: #fce8e6;
-            color: #c5221f;
+            background-color: #FEF2F2;
+            color: #B91C1C;
+            border: 1px solid #FECACA;
         }
         
         .dark .difficulty-hard {
-            background-color: #3c1a1a;
-            color: #f28b82;
+            background-color: #3C1A1A;
+            color: #FCA5A5;
+            border-color: #7F1D1D;
         }
         
         .math-loader {
             width: 60px;
-            aspect-ratio: 1;
-            display: grid;
-            border-radius: 50%;
-            background:
-                linear-gradient(0deg, rgb(0 0 0/50%) 30%,#0000 0 70%,rgb(0 0 0/100%) 0) 50%/8% 100%,
-                linear-gradient(90deg, rgb(0 0 0/25%) 30%,#0000 0 70%,rgb(0 0 0/75%) 0) 50%/100% 8%;
-            background-repeat: no-repeat;
-            animation: l23 1s infinite steps(12);
+            height: 60px;
+            position: relative;
         }
-        .math-loader::before,
-        .math-loader::after {
+        
+        .math-loader:before {
             content: "";
-            grid-area: 1/1;
+            width: 60px;
+            height: 60px;
+            border: 3px solid #E5E7EB;
+            border-top-color: #005AA3;
             border-radius: 50%;
-            background: inherit;
-            opacity: 0.915;
-            transform: rotate(30deg);
+            animation: spin 1s linear infinite;
         }
-        .math-loader::after {
-            opacity: 0.83;
-            transform: rotate(60deg);
+        
+        .dark .math-loader:before {
+            border-color: #374151;
+            border-top-color: #4DABF7;
         }
-        @keyframes l23 {
-            100% {transform: rotate(1turn)}
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         /* LaTeX styling */
         .math-display {
             overflow-x: auto;
             margin: 1em 0;
-            padding: 0.5rem;
+            padding: 1rem;
+            background-color: #F9FAFB;
+            border-radius: 4px;
+            border: 1px solid #E5E7EB;
+        }
+        
+        .dark .math-display {
+            background-color: #111827;
+            border-color: #374151;
         }
         
         .answer-section {
-            background-color: #f8f9fa;
-            border-left: 4px solid #1a73e8;
-            padding: 1rem;
+            background-color: #F0F9FF;
+            border: 1px solid #B3D9FF;
+            padding: 1.25rem;
             margin: 1rem 0;
-            border-radius: 4px;
+            border-radius: 6px;
         }
         
         .dark .answer-section {
-            background-color: #292a2d;
-            border-left-color: #8ab4f8;
+            background-color: #1E3A5F;
+            border-color: #374151;
         }
         
-        /* Wikipedia-like content width */
-        .wiki-container {
-            max-width: 960px;
+        /* Springer-like content width */
+        .springer-container {
+            max-width: 1000px;
             margin: 0 auto;
         }
         
         /* Palette styling */
         .palette-button {
             transition: all 0.2s ease;
+            border: 1px solid #E5E7EB;
+            font-family: 'Times New Roman', serif;
         }
         
         .palette-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         
         .dark .palette-button:hover {
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
         .palette-section {
@@ -190,56 +225,191 @@
             max-height: 0;
             opacity: 0;
             overflow: hidden;
+            margin: 0 !important;
+            padding: 0 !important;
         }
         
         .palette-visible {
             max-height: 500px;
             opacity: 1;
         }
+        
+        /* Springer typography */
+        h1, h2, h3, h4 {
+            font-family: 'Georgia', serif;
+            font-weight: 600;
+        }
+        
+        .springer-title {
+            font-family: 'Georgia', serif;
+            font-weight: 600;
+            color: #1F2937;
+        }
+        
+        .dark .springer-title {
+            color: #F9FAFB;
+        }
+        
+        /* Button styling */
+        .btn-primary {
+            background-color: #005AA3;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid #005AA3;
+        }
+        
+        .btn-primary:hover {
+            background-color: #004080;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,90,163,0.1);
+        }
+        
+        .dark .btn-primary {
+            background-color: #4DABF7;
+            border-color: #4DABF7;
+            color: #1F2937;
+        }
+        
+        .dark .btn-primary:hover {
+            background-color: #93C5FD;
+        }
+        
+        .btn-secondary {
+            background-color: transparent;
+            color: #005AA3;
+            padding: 0.5rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid #005AA3;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #E6F2FF;
+        }
+        
+        .dark .btn-secondary {
+            color: #4DABF7;
+            border-color: #4DABF7;
+        }
+        
+        .dark .btn-secondary:hover {
+            background-color: #1E3A5F;
+        }
+        
+        /* Springer-like section dividers */
+        .section-divider {
+            border-bottom: 2px solid #E5E7EB;
+            margin: 2rem 0;
+        }
+        
+        .dark .section-divider {
+            border-color: #374151;
+        }
+        
+        /* Rating buttons */
+        .rating-btn {
+            font-family: 'Times New Roman', serif;
+            font-size: 1.1rem;
+            padding: 0.5rem 0.75rem;
+            min-width: 3rem;
+        }
+        
+        /* Form styling */
+        .springer-input {
+            border: 1px solid #D1D5DB;
+            border-radius: 4px;
+            padding: 0.75rem;
+            font-family: 'Times New Roman', serif;
+            font-size: 1rem;
+        }
+        
+        .springer-input:focus {
+            outline: none;
+            border-color: #005AA3;
+            box-shadow: 0 0 0 3px rgba(0,90,163,0.1);
+        }
+        
+        .dark .springer-input {
+            background-color: #1F2937;
+            border-color: #374151;
+            color: #E5E7EB;
+        }
+        
+        .dark .springer-input:focus {
+            border-color: #4DABF7;
+            box-shadow: 0 0 0 3px rgba(77,171,247,0.1);
+        }
+        
+        /* Modal styling */
+        .springer-modal {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+        
+        .dark .springer-modal {
+            background-color: #1F2937;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);
+        }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900">
+<body class="bg-springer-lightgray dark:bg-gray-900">
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="fixed inset-0 flex flex-col items-center justify-center bg-white dark:bg-gray-900 z-50">
         <div class="math-loader mb-4"></div>
-        <div class="text-lg dark:text-gray-300">Loading Integral Problems...</div>
+        <div class="text-lg text-springer-gray dark:text-gray-300 font-serif">Loading Integral Problems...</div>
     </div>
 
     <!-- Error Overlay -->
     <div id="errorOverlay" class="fixed inset-0 hidden flex-col items-center justify-center bg-white dark:bg-gray-900 z-50 p-6">
-        <h2 class="text-xl font-bold mb-2 dark:text-gray-300">Connection Error</h2>
+        <svg class="w-12 h-12 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h2 class="text-xl font-bold mb-2 dark:text-gray-300 font-serif">Connection Error</h2>
         <p id="errorMessageText" class="mb-4 text-center dark:text-gray-400"></p>
         <p class="text-sm text-gray-600 dark:text-gray-500">Check Firebase configuration</p>
     </div>
 
     <!-- Delete Modal -->
-    <div id="deleteModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 max-w-md w-full rounded">
-            <h3 class="text-lg font-bold mb-3 dark:text-gray-300">Confirm Deletion</h3>
-            <p class="mb-4 dark:text-gray-400">Are you sure you want to delete this integral problem?</p>
+    <div id="deleteModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+        <div class="springer-modal p-6 max-w-md w-full">
+            <div class="flex items-center mb-4">
+                <svg class="w-6 h-6 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.232 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <h3 class="text-lg font-bold dark:text-gray-300 font-serif">Confirm Deletion</h3>
+            </div>
+            <p class="mb-6 dark:text-gray-400">Are you sure you want to delete this integral problem?</p>
             <div class="flex justify-end space-x-3">
-                <button id="cancelDeleteBtn" class="px-3 py-1.5 dark:text-gray-300">Cancel</button>
-                <button id="confirmDeleteBtn" class="px-3 py-1.5 bg-red-600 text-white">Delete</button>
+                <button id="cancelDeleteBtn" class="btn-secondary">Cancel</button>
+                <button id="confirmDeleteBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-medium">Delete</button>
             </div>
         </div>
     </div>
 
     <!-- Header -->
     <header class="header py-4 dark:bg-gray-900">
-        <div class="wiki-container px-4 flex justify-between items-center">
-            <div class="flex items-center">
-                <h1 class="integral-header text-xl">
-                    <span class="text-2xl">∫</span> Integral Bee
+        <div class="springer-container px-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <svg class="w-8 h-8 text-springer-blue dark:text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                <h1 class="integral-header text-2xl">
+                    <span class="text-3xl">∫</span> Integral Bee
                 </h1>
             </div>
             <div class="flex items-center space-x-4">
-                <div class="text-sm font-mono hidden sm:block">
-                    <span>User:</span> <span id="userIdDisplay">⋯</span>
+                <div class="text-sm font-mono hidden sm:block text-springer-gray dark:text-gray-400">
+                    <span class="font-serif">User:</span> <span id="userIdDisplay" class="font-mono">⋯</span>
                 </div>
-                <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
-                        <path id="sunIcon" d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" class="block dark:hidden"/>
-                        <path id="moonIcon" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" class="hidden dark:block"/>
+                <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                    <svg class="w-5 h-5 text-springer-gray dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path id="sunIcon" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" class="block dark:hidden"/>
+                        <path id="moonIcon" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" class="hidden dark:block"/>
                     </svg>
                 </button>
             </div>
@@ -247,116 +417,166 @@
     </header>
 
     <!-- Main Content -->
-    <main class="wiki-container px-4 py-6">
+    <main class="springer-container px-4 py-8">
         <!-- Submission Form -->
-        <div class="mb-8">
-            <form id="problemForm" class="mb-6">
-                <h2 class="text-xl font-semibold mb-4 dark:text-gray-300">Submit New Integral Problem</h2>
-                
+        <div class="mb-12">
+            <div class="flex items-center mb-6">
+                <svg class="w-6 h-6 text-springer-blue dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                <h2 class="springer-title text-2xl">Submit New Integral Problem</h2>
+            </div>
+            
+            <form id="problemForm" class="mb-6 p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                 <!-- Palette Toggle -->
-                <button type="button" id="paletteToggle" class="mb-4 text-sm px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-200 dark:hover:bg-gray-700">
-                    📝 Show Math Palette
+                <button type="button" id="paletteToggle" class="btn-secondary mb-4 text-sm flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <span>Show Math Palette</span>
                 </button>
                 
                 <!-- Math Palette (Hidden by default) -->
-                <div id="mathPalette" class="palette-section palette-hidden mb-4">
-                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-3">
-                        <!-- Integrals -->
-                        <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded text-sm font-mono" data-latex="\int">∫</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded text-sm font-mono" data-latex="\int_{a}^{b}">∫<sub>a</sub><sup>b</sup></button>
-                        <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded text-sm font-mono" data-latex="\iint">∬</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded text-sm font-mono" data-latex="\iiint">∭</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded text-sm font-mono" data-latex="\oint">∮</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded text-sm font-mono" data-latex="\oint_{C}">∮<sub>C</sub></button>
+                <div id="mathPalette" class="palette-section palette-hidden mb-6 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <!-- Integrals -->
+                    <div class="mb-4">
+                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif">Integrals</div>
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                            <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded" data-latex="\int" data-cursor="inside">∫</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded" data-latex="\int_{a}^{b}" data-cursor="after">∫<sub>a</sub><sup>b</sup></button>
+                            <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded" data-latex="\iint" data-cursor="inside">∬</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded" data-latex="\iiint" data-cursor="inside">∭</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded" data-latex="\oint" data-cursor="inside">∮</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded" data-latex="\oint_{C}" data-cursor="after">∮<sub>C</sub></button>
+                        </div>
                     </div>
                     
-                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-3">
-                        <!-- Trigonometric -->
-                        <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded text-sm font-mono" data-latex="\sin">sin</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded text-sm font-mono" data-latex="\cos">cos</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded text-sm font-mono" data-latex="\tan">tan</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded text-sm font-mono" data-latex="\cot">cot</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded text-sm font-mono" data-latex="\sec">sec</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded text-sm font-mono" data-latex="\csc">csc</button>
+                    <!-- Trigonometric Functions -->
+                    <div class="mb-4">
+                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif">Trigonometric Functions</div>
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\sin()" data-cursor="inside">sin()</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\cos()" data-cursor="inside">cos()</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\tan()" data-cursor="inside">tan()</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\cot()" data-cursor="inside">cot()</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\sec()" data-cursor="inside">sec()</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\csc()" data-cursor="inside">csc()</button>
+                        </div>
                     </div>
                     
-                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-3">
-                        <!-- Inverse Trig -->
-                        <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded text-sm font-mono" data-latex="\arcsin">sin⁻¹</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded text-sm font-mono" data-latex="\arccos">cos⁻¹</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded text-sm font-mono" data-latex="\arctan">tan⁻¹</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded text-sm font-mono" data-latex="\operatorname{arccot}">cot⁻¹</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded text-sm font-mono" data-latex="\operatorname{arcsec}">sec⁻¹</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded text-sm font-mono" data-latex="\operatorname{arccsc}">csc⁻¹</button>
+                    <!-- Inverse Trigonometric -->
+                    <div class="mb-4">
+                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif">Inverse Trigonometric</div>
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\arcsin()" data-cursor="inside">sin⁻¹()</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\arccos()" data-cursor="inside">cos⁻¹()</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\arctan()" data-cursor="inside">tan⁻¹()</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\operatorname{arccot}()" data-cursor="inside">cot⁻¹()</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\operatorname{arcsec}()" data-cursor="inside">sec⁻¹()</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded" data-latex="\operatorname{arccsc}()" data-cursor="inside">csc⁻¹()</button>
+                        </div>
                     </div>
                     
-                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-3">
-                        <!-- Logarithms & Exponentials -->
-                        <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded text-sm font-mono" data-latex="\ln">ln</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded text-sm font-mono" data-latex="\log">log</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded text-sm font-mono" data-latex="\log_{10}">log₁₀</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded text-sm font-mono" data-latex="\log_{2}">log₂</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded text-sm font-mono" data-latex="e^{x}">eˣ</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded text-sm font-mono" data-latex="a^{x}">aˣ</button>
+                    <!-- Logarithms & Exponentials -->
+                    <div class="mb-4">
+                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif">Logarithms & Exponentials</div>
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                            <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded" data-latex="\ln()" data-cursor="inside">ln()</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded" data-latex="\log()" data-cursor="inside">log()</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded" data-latex="\log_{10}()" data-cursor="inside">log₁₀()</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded" data-latex="\log_{2}()" data-cursor="inside">log₂()</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded" data-latex="e^{}" data-cursor="inside">e^{}</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded" data-latex="a^{}" data-cursor="inside">a^{}</button>
+                        </div>
                     </div>
                     
-                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-3">
-                        <!-- Fractions & Roots -->
-                        <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded text-sm font-mono" data-latex="\frac{a}{b}">a/b</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded text-sm font-mono" data-latex="\sqrt{x}">√x</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded text-sm font-mono" data-latex="\sqrt[n]{x}">ⁿ√x</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded text-sm font-mono" data-latex="x^{n}">xⁿ</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded text-sm font-mono" data-latex="x_{n}">xₙ</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded text-sm font-mono" data-latex="\infty">∞</button>
+                    <!-- Fractions, Roots & Powers -->
+                    <div class="mb-4">
+                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif">Fractions, Roots & Powers</div>
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                            <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded" data-latex="\frac{}{}" data-cursor="numerator">a/b</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded" data-latex="\sqrt{}" data-cursor="inside">√</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded" data-latex="\sqrt[]{}" data-cursor="index">ⁿ√</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded" data-latex="^{}" data-cursor="inside">xⁿ</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded" data-latex="_{}" data-cursor="inside">xₙ</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded" data-latex="\infty" data-cursor="after">∞</button>
+                        </div>
                     </div>
                     
-                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-3">
-                        <!-- Greek Letters -->
-                        <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded text-sm font-mono" data-latex="\alpha">α</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded text-sm font-mono" data-latex="\beta">β</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded text-sm font-mono" data-latex="\gamma">γ</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded text-sm font-mono" data-latex="\theta">θ</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded text-sm font-mono" data-latex="\pi">π</button>
-                        <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded text-sm font-mono" data-latex="\phi">φ</button>
+                    <!-- Greek Letters -->
+                    <div class="mb-4">
+                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif">Greek Letters</div>
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                            <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded" data-latex="\alpha" data-cursor="after">α</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded" data-latex="\beta" data-cursor="after">β</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded" data-latex="\gamma" data-cursor="after">γ</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded" data-latex="\theta" data-cursor="after">θ</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded" data-latex="\pi" data-cursor="after">π</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded" data-latex="\phi" data-cursor="after">φ</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Brackets & Parentheses -->
+                    <div class="mb-4">
+                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 font-serif">Brackets & Parentheses</div>
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                            <button type="button" class="palette-button px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded" data-latex="()" data-cursor="inside">()</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded" data-latex="[]" data-cursor="inside">[]</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded" data-latex="\{\}" data-cursor="inside">{}</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded" data-latex="\langle\rangle" data-cursor="inside">⟨⟩</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded" data-latex="\lfloor\rfloor" data-cursor="inside">⌊⌋</button>
+                            <button type="button" class="palette-button px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded" data-latex="\lceil\rceil" data-cursor="inside">⌈⌉</button>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-2 dark:text-gray-400">Problem Statement (LaTeX)</label>
-                    <textarea id="problemText" rows="3" class="w-full p-3 border dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 font-mono text-sm" required 
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-3 dark:text-gray-400 font-serif">Problem Statement (LaTeX)</label>
+                    <textarea id="problemText" rows="3" class="springer-input w-full" required 
                         placeholder="\int_0^{\pi} \frac{x \sin x}{1 + \cos^2 x} \, dx"></textarea>
                 </div>
                 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-2 dark:text-gray-400">Answer (LaTeX)</label>
-                    <textarea id="answerText" rows="2" class="w-full p-3 border dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 font-mono text-sm" required 
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-3 dark:text-gray-400 font-serif">Answer (LaTeX)</label>
+                    <textarea id="answerText" rows="2" class="springer-input w-full" required 
                         placeholder="\frac{\pi^2}{4}"></textarea>
                 </div>
                 
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium">
+                <button type="submit" class="btn-primary flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
                     Submit Problem
                 </button>
-                <p id="formMessage" class="mt-2 text-sm dark:text-gray-400"></p>
+                <p id="formMessage" class="mt-3 text-sm dark:text-gray-400"></p>
             </form>
         </div>
 
+        <!-- Section Divider -->
+        <div class="section-divider"></div>
+
         <!-- Problems List -->
         <div>
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                <div>
-                    <h2 class="text-xl font-semibold dark:text-gray-300">Integral Problems</h2>
-                    <div id="problemsCountDisplay" class="text-sm text-gray-600 dark:text-gray-400 mt-1"></div>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-springer-blue dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <div>
+                        <h2 class="springer-title text-2xl">Integral Problems</h2>
+                        <div id="problemsCountDisplay" class="text-sm text-gray-600 dark:text-gray-400 mt-1 font-serif"></div>
+                    </div>
                 </div>
                 <div class="flex items-center space-x-4">
                     <div class="flex items-center space-x-2">
-                        <span class="text-sm dark:text-gray-400">Show:</span>
-                        <select id="itemsPerPage" class="text-sm p-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                        <span class="text-sm dark:text-gray-400 font-serif">Show:</span>
+                        <select id="itemsPerPage" class="springer-input text-sm">
                             <option value="10">10</option>
                             <option value="20">20</option>
                             <option value="50">50</option>
                         </select>
                     </div>
-                    <select id="sortOptions" class="text-sm p-2 border dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                    <select id="sortOptions" class="springer-input text-sm">
                         <option value="mostReviewedThenHard">Most Reviewed → Hardest</option>
                         <option value="hardestFirst">Hardest First</option>
                         <option value="easiestFirst">Easiest First</option>
@@ -366,19 +586,27 @@
                 </div>
             </div>
             
-            <div id="problemsList" class="space-y-4">
-                <div class="text-center py-8 dark:text-gray-400">Loading problems...</div>
+            <div id="problemsList" class="space-y-6">
+                <div class="text-center py-12 text-gray-500 dark:text-gray-400 font-serif">
+                    <svg class="w-8 h-8 mx-auto mb-3 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Loading problems...
+                </div>
             </div>
-            
-            <!-- Pagination will be added dynamically -->
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="border-t mt-12 py-6 text-center text-sm text-gray-600 dark:text-gray-500 dark:border-gray-800">
-        <div class="wiki-container px-4">
-            Integral Bee Platform • Solve challenging integrals • Share your solutions
-            <p class="mt-2 text-xs">Use LaTeX for mathematical expressions: $$ \int f(x) \, dx $$</p>
+    <footer class="border-t mt-12 py-8 text-center bg-white dark:bg-gray-900 dark:border-gray-800">
+        <div class="springer-container px-4">
+            <div class="flex flex-col items-center">
+                <svg class="w-8 h-8 text-springer-blue dark:text-blue-400 mb-3" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                <p class="text-sm text-gray-600 dark:text-gray-400 font-serif">Integral Bee Platform • Solve challenging integrals • Share your solutions</p>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-500 font-serif">Use LaTeX for mathematical expressions: $$ \int f(x) \, dx $$</p>
+            </div>
         </div>
     </footer>
 
@@ -402,17 +630,84 @@
         const mathPalette = document.getElementById('mathPalette');
         let paletteVisible = false;
         
-        paletteToggle.addEventListener('click', () => {
-            paletteVisible = !paletteVisible;
-            if (paletteVisible) {
-                mathPalette.classList.remove('palette-hidden');
-                mathPalette.classList.add('palette-visible');
-                paletteToggle.textContent = '📝 Hide Math Palette';
-            } else {
-                mathPalette.classList.remove('palette-visible');
-                mathPalette.classList.add('palette-hidden');
-                paletteToggle.textContent = '📝 Show Math Palette';
-            }
+        if (paletteToggle && mathPalette) {
+            paletteToggle.addEventListener('click', () => {
+                paletteVisible = !paletteVisible;
+                if (paletteVisible) {
+                    mathPalette.classList.remove('palette-hidden');
+                    mathPalette.classList.add('palette-visible');
+                    paletteToggle.innerHTML = `
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                        <span>Hide Math Palette</span>
+                    `;
+                } else {
+                    mathPalette.classList.remove('palette-visible');
+                    mathPalette.classList.add('palette-hidden');
+                    paletteToggle.innerHTML = `
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                        <span>Show Math Palette</span>
+                    `;
+                }
+            });
+        }
+        
+        // Palette button functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.palette-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    let latex = e.target.getAttribute('data-latex');
+                    const cursorPosition = e.target.getAttribute('data-cursor') || 'after';
+                    const textarea = document.getElementById('problemText');
+                    if (!textarea) return;
+                    
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    const selectedText = textarea.value.substring(start, end);
+                    
+                    let newCursorPos;
+                    
+                    switch(cursorPosition) {
+                        case 'inside':
+                            const openParenIndex = latex.indexOf('(');
+                            if (openParenIndex !== -1) {
+                                newCursorPos = start + openParenIndex + 1;
+                            } else if (latex.includes('^{')) {
+                                newCursorPos = start + latex.indexOf('^{') + 2;
+                            } else if (latex.includes('_{')) {
+                                newCursorPos = start + latex.indexOf('_{') + 2;
+                            } else if (latex.includes('{}')) {
+                                newCursorPos = start + latex.indexOf('{}') + 1;
+                            } else {
+                                newCursorPos = start + latex.length;
+                            }
+                            break;
+                            
+                        case 'numerator':
+                            newCursorPos = start + latex.indexOf('{') + 1;
+                            break;
+                            
+                        case 'index':
+                            newCursorPos = start + latex.indexOf('[') + 1;
+                            break;
+                            
+                        case 'after':
+                        default:
+                            newCursorPos = start + latex.length;
+                            break;
+                    }
+                    
+                    const newText = textarea.value.substring(0, start) + 
+                                  latex + 
+                                  textarea.value.substring(end);
+                    textarea.value = newText;
+                    textarea.focus();
+                    textarea.setSelectionRange(newCursorPos, newCursorPos);
+                });
+            });
         });
     </script>
 </body>
