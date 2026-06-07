@@ -16,11 +16,21 @@ import {
 
 const marked = window.marked;
 
-marked.setOptions({
-  gfm: true,
-  breaks: true,
-  sanitize: false
-});
+if (marked) {
+  marked.setOptions({
+    gfm: true,
+    breaks: true,
+    sanitize: false
+  });
+}
+
+const EXPORT_LAYOUT = {
+  "very-easy": 3,
+  "easy": 3,
+  "medium": 3,
+  "hard": 3,
+  "very-hard": 3
+};
 
 const firebaseConfig = {
   apiKey: "AIzaSyBkFwqpkhoXj_bxMjxKvnvA3vlPGrJ_Sps",
@@ -44,7 +54,7 @@ let currentPage = 0;
 let allProblems = [];
 let totalProblems = 0;
 
-// --- DOM Elements ---
+// DOM
 const problemsList = document.getElementById("problemsList");
 const problemForm = document.getElementById("problemForm");
 const problemTextInput = document.getElementById("problemText");
@@ -71,7 +81,7 @@ function safeNumber(value, fallback = 0) {
 }
 
 function escapeHtml(str = "") {
-  return str
+  return String(str)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -80,7 +90,7 @@ function escapeHtml(str = "") {
 }
 
 function sanitizeForLatex(text = "") {
-  return text
+  return String(text)
     .replace(/\\/g, "\\textbackslash{}")
     .replace(/([#$%&_{}])/g, "\\$1")
     .replace(/\^/g, "\\textasciicircum{}")
@@ -143,11 +153,7 @@ function computeRefereeSummary(problem) {
   if (accepts >= 2) approvalStatus = "Approved";
   else if (rejects >= 2) approvalStatus = "Rejected";
 
-  return {
-    accepts,
-    rejects,
-    approvalStatus
-  };
+  return { accepts, rejects, approvalStatus };
 }
 
 function ensureProblemDefaults(problem) {
@@ -188,12 +194,39 @@ function typesetMath() {
 }
 
 function displayFormMessage(msg, colorClass) {
+  if (!formMessage) return;
   formMessage.textContent = msg;
   formMessage.className = `mt-2 text-center text-sm font-medium ${colorClass}`;
   setTimeout(() => {
     formMessage.textContent = "";
     formMessage.className = "";
   }, 3000);
+}
+
+function setExportMessage(text, isError = false) {
+  const el = document.getElementById("exportMessage");
+  if (!el) return;
+  el.textContent = text;
+  el.className = `mt-3 text-sm ${isError ? "text-red-600 dark:text-red-400" : "text-gray-500 dark:text-gray-400"}`;
+}
+
+function getApprovedProblemsGroupedByDifficulty() {
+  const approved = allProblems.filter((p) => p.approvalStatus === "Approved");
+
+  const grouped = {
+    "very-easy": [],
+    "easy": [],
+    "medium": [],
+    "hard": [],
+    "very-hard": []
+  };
+
+  approved.forEach((p) => {
+    const bucket = getDifficultyBucket(p.estimatedDifficulty || 3);
+    grouped[bucket].push(p);
+  });
+
+  return grouped;
 }
 
 // --------------------------
@@ -204,7 +237,8 @@ onAuthStateChanged(
   async (user) => {
     if (user) {
       currentUserId = user.uid;
-      userIdDisplay.textContent = `${currentUserId.substring(0, 8)}...`;
+      if (userIdDisplay) userIdDisplay.textContent = `${currentUserId.substring(0, 8)}...`;
+      console.log("AUTH UID:", currentUserId);
       listenForProblems();
       ensureExportControls();
     } else {
@@ -212,86 +246,94 @@ onAuthStateChanged(
         await signInAnonymously(auth);
       } catch (e) {
         console.error("Error signing in anonymously:", e);
-        errorMessageText.textContent =
-          "Failed to authenticate. Please ensure Anonymous Auth is enabled in your Firebase project.";
-        errorOverlay.classList.remove("hidden");
-        loadingOverlay.classList.add("hidden");
+        if (errorMessageText) {
+          errorMessageText.textContent =
+            "Failed to authenticate. Please ensure Anonymous Auth is enabled in your Firebase project.";
+        }
+        if (errorOverlay) errorOverlay.classList.remove("hidden");
+        if (loadingOverlay) loadingOverlay.classList.add("hidden");
       }
     }
   },
   (error) => {
     console.error("Auth state change error:", error);
-    errorMessageText.textContent = "Authentication error. Please check your Firebase setup.";
-    errorOverlay.classList.remove("hidden");
-    loadingOverlay.classList.add("hidden");
+    if (errorMessageText) errorMessageText.textContent = "Authentication error. Please check your Firebase setup.";
+    if (errorOverlay) errorOverlay.classList.remove("hidden");
+    if (loadingOverlay) loadingOverlay.classList.add("hidden");
   }
 );
 
 // --------------------------
 // Submission
 // --------------------------
-problemForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const problemContent = problemTextInput.value.trim();
-  const answerContent = answerTextInput.value.trim();
+if (problemForm) {
+  problemForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const problemContent = problemTextInput.value.trim();
+    const answerContent = answerTextInput.value.trim();
 
-  if (!problemContent || !answerContent) {
-    displayFormMessage("Both problem and answer are required!", "text-red-600");
-    return;
-  }
+    if (!problemContent || !answerContent) {
+      displayFormMessage("Both problem and answer are required!", "text-red-600");
+      return;
+    }
 
-  if (!db || !currentUserId) {
-    displayFormMessage("App not ready. Please wait for authentication.", "text-red-600");
-    return;
-  }
+    if (!db || !currentUserId) {
+      displayFormMessage("App not ready. Please wait for authentication.", "text-red-600");
+      return;
+    }
 
-  try {
-    const problemsCollectionRef = collection(
-      db,
-      `artifacts/${YOUR_CUSTOM_APP_ID}/public/data/integralProblems`
-    );
+    try {
+      const problemsCollectionRef = collection(
+        db,
+        `artifacts/${YOUR_CUSTOM_APP_ID}/public/data/integralProblems`
+      );
 
-    await addDoc(problemsCollectionRef, {
-  problem: problemContent,
-  answer: answerContent,
-  difficultyScore: 3.0,
-  difficultyRatings: {},
-  totalDifficultyRatings: 0,
-  estimatedDifficulty: 3.0,
-  refereeVotes: {},
-  refereeDifficultyRatings: {},
-  acceptCount: 0,
-  rejectCount: 0,
-  approvalStatus: "Pending",
-  createdAt: serverTimestamp(),
-  submittedBy: currentUserId,
-  status: "active",
-  type: "integral"
-});
+      await addDoc(problemsCollectionRef, {
+        problem: problemContent,
+        answer: answerContent,
+        difficultyScore: 3.0,
+        difficultyRatings: {},
+        totalDifficultyRatings: 0,
+        estimatedDifficulty: 3.0,
+        refereeVotes: {},
+        refereeDifficultyRatings: {},
+        acceptCount: 0,
+        rejectCount: 0,
+        approvalStatus: "Pending",
+        createdAt: serverTimestamp(),
+        submittedBy: currentUserId,
+        status: "active",
+        type: "integral"
+      });
 
-    problemTextInput.value = "";
-    answerTextInput.value = "";
-    displayFormMessage("Integral problem submitted successfully!", "text-green-600");
-  } catch (error) {
-    console.error("Error adding document:", error);
-    displayFormMessage("Failed to submit problem. Check console for details.", "text-red-600");
-  }
-});
+      problemTextInput.value = "";
+      answerTextInput.value = "";
+      displayFormMessage("Integral problem submitted successfully!", "text-green-600");
+    } catch (error) {
+      console.error("Error adding document:", error);
+      displayFormMessage(`Failed to submit problem: ${error.message}`, "text-red-600");
+    }
+  });
+}
 
 // --------------------------
 // Sort / pagination
 // --------------------------
-sortOptionsDropdown.addEventListener("change", (e) => {
-  currentSortOption = e.target.value;
-  currentPage = 0;
-  applyAndRenderSorting();
-});
+if (sortOptionsDropdown) {
+  sortOptionsDropdown.addEventListener("change", (e) => {
+    currentSortOption = e.target.value;
+    currentPage = 0;
+    applyAndRenderSorting();
+  });
+}
 
-itemsPerPageDropdown.addEventListener("change", (e) => {
-  itemsPerPage = parseInt(e.target.value, 10);
-  currentPage = 0;
-  applyAndRenderSorting();
-});
+if (itemsPerPageDropdown) {
+  itemsPerPageDropdown.addEventListener("change", (e) => {
+    itemsPerPage = parseInt(e.target.value, 10);
+    currentPage = 0;
+    applyAndRenderSorting();
+  });
+}
 
 // --------------------------
 // Firestore listener
@@ -307,33 +349,39 @@ function listenForProblems() {
     onSnapshot(
       q,
       (snapshot) => {
-        allProblems = snapshot.docs.map((d) => ensureProblemDefaults({
-          id: d.id,
-          ...d.data()
-        }));
+        allProblems = snapshot.docs.map((d) =>
+          ensureProblemDefaults({
+            id: d.id,
+            ...d.data()
+          })
+        );
 
         totalProblems = allProblems.length;
         updateProblemsCount();
-        loadingOverlay.classList.add("hidden");
+        if (loadingOverlay) loadingOverlay.classList.add("hidden");
         applyAndRenderSorting();
       },
       (error) => {
         console.error("Error in listener:", error);
-        problemsList.innerHTML = `<p class="text-center text-red-600 dark:text-red-400">Failed to load integral problems. Error: ${escapeHtml(error.message)}</p>`;
-        loadingOverlay.classList.add("hidden");
+        if (problemsList) {
+          problemsList.innerHTML = `<p class="text-center text-red-600 dark:text-red-400">Failed to load integral problems. Error: ${escapeHtml(error.message)}</p>`;
+        }
+        if (loadingOverlay) loadingOverlay.classList.add("hidden");
       }
     );
   } catch (error) {
     console.error("Error setting up listener:", error);
-    problemsList.innerHTML = `<p class="text-center text-red-600 dark:text-red-400">Setup error: ${escapeHtml(error.message)}</p>`;
-    loadingOverlay.classList.add("hidden");
+    if (problemsList) {
+      problemsList.innerHTML = `<p class="text-center text-red-600 dark:text-red-400">Setup error: ${escapeHtml(error.message)}</p>`;
+    }
+    if (loadingOverlay) loadingOverlay.classList.add("hidden");
   }
 }
 
 function updateProblemsCount() {
   const countDisplay = document.getElementById("problemsCountDisplay");
   if (countDisplay) {
-    const approvedCount = allProblems.filter(p => p.approvalStatus === "Approved").length;
+    const approvedCount = allProblems.filter((p) => p.approvalStatus === "Approved").length;
     countDisplay.textContent = `Total: ${totalProblems} problems • Approved: ${approvedCount}`;
   }
 }
@@ -384,6 +432,8 @@ function applyAndRenderSorting() {
 }
 
 function updatePagination(totalFilteredProblems) {
+  if (!problemsList || !problemsList.parentNode) return;
+
   if (!paginationDiv) {
     paginationDiv = document.createElement("div");
     paginationDiv.id = "pagination";
@@ -456,6 +506,8 @@ function updatePagination(totalFilteredProblems) {
 // Render cards
 // --------------------------
 function renderProblems(problems) {
+  if (!problemsList) return;
+
   problemsList.innerHTML = "";
 
   if (problems.length === 0) {
@@ -472,8 +524,7 @@ function renderProblems(problems) {
   }
 
   problems.forEach((problem) => {
-    const card = createProblemCard(problem);
-    problemsList.appendChild(card);
+    problemsList.appendChild(createProblemCard(problem));
   });
 
   typesetMath();
@@ -579,7 +630,6 @@ function createProblemCard(problem) {
   `;
   cardDiv.appendChild(answerDiv);
 
-  // Public difficulty section
   const ratingDiv = document.createElement("div");
   ratingDiv.className = "mb-4";
   ratingDiv.innerHTML = `
@@ -602,7 +652,6 @@ function createProblemCard(problem) {
   `;
   cardDiv.appendChild(ratingDiv);
 
-  // Referee section
   const refereeSection = document.createElement("div");
   refereeSection.className = "mb-4 p-4 rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800";
   refereeSection.innerHTML = `
@@ -679,7 +728,6 @@ function createProblemCard(problem) {
     answerDiv.classList.toggle("hidden");
     showAnswerBtn.textContent = answerDiv.classList.contains("hidden") ? "Show Answer" : "Hide Answer";
   });
-
   leftActions.appendChild(showAnswerBtn);
 
   const rightActions = document.createElement("div");
@@ -698,7 +746,7 @@ function createProblemCard(problem) {
     deleteBtn.textContent = "Delete";
     deleteBtn.addEventListener("click", () => {
       problemToDeleteId = problem.id;
-      deleteModal.classList.remove("hidden");
+      if (deleteModal) deleteModal.classList.remove("hidden");
     });
 
     rightActions.appendChild(editBtn);
@@ -717,7 +765,6 @@ function createProblemCard(problem) {
     cardDiv.appendChild(timestampDiv);
   }
 
-  // Bind events
   cardDiv.querySelectorAll(".difficulty-btn").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       const rating = parseInt(e.currentTarget.getAttribute("data-rating"), 10);
@@ -844,33 +891,37 @@ async function updateProblem(problemId, newProblem, newAnswer) {
     });
   } catch (error) {
     console.error("Error updating problem:", error);
-    alert("Failed to update problem. Please try again.");
+    alert(`Failed to update problem: ${error.message}`);
   }
 }
 
-confirmDeleteBtn.addEventListener("click", async () => {
-  if (!db || !problemToDeleteId) return;
+if (confirmDeleteBtn) {
+  confirmDeleteBtn.addEventListener("click", async () => {
+    if (!db || !problemToDeleteId) return;
 
-  const problemRef = doc(
-    db,
-    `artifacts/${YOUR_CUSTOM_APP_ID}/public/data/integralProblems`,
-    problemToDeleteId
-  );
+    const problemRef = doc(
+      db,
+      `artifacts/${YOUR_CUSTOM_APP_ID}/public/data/integralProblems`,
+      problemToDeleteId
+    );
 
-  try {
-    await deleteDoc(problemRef);
-    deleteModal.classList.add("hidden");
+    try {
+      await deleteDoc(problemRef);
+      if (deleteModal) deleteModal.classList.add("hidden");
+      problemToDeleteId = null;
+    } catch (error) {
+      console.error("Error deleting problem:", error);
+      alert(`Failed to delete problem: ${error.message}`);
+    }
+  });
+}
+
+if (cancelDeleteBtn) {
+  cancelDeleteBtn.addEventListener("click", () => {
+    if (deleteModal) deleteModal.classList.add("hidden");
     problemToDeleteId = null;
-  } catch (error) {
-    console.error("Error deleting problem:", error);
-    alert("Failed to delete problem. Please try again.");
-  }
-});
-
-cancelDeleteBtn.addEventListener("click", () => {
-  deleteModal.classList.add("hidden");
-  problemToDeleteId = null;
-});
+  });
+}
 
 // --------------------------
 // Public difficulty rating
@@ -916,7 +967,7 @@ async function handleDifficultyRating(problemId, rating) {
     });
   } catch (error) {
     console.error("Error updating difficulty rating:", error);
-    alert("Failed to update rating. Please try again.");
+    alert(`Failed to update rating: ${error.message}`);
   }
 }
 
@@ -956,8 +1007,6 @@ async function handleRefereeDifficulty(problemId, rating) {
     await updateDoc(problemRef, {
       refereeDifficultyRatings
     });
-
-    console.log("Referee difficulty updated successfully");
   } catch (error) {
     console.error("REFEREE DIFFICULTY ERROR:", error);
     alert(`Failed to update referee difficulty: ${error.message}`);
@@ -1004,8 +1053,6 @@ async function handleRefereeVote(problemId, vote) {
       rejectCount: rejects,
       approvalStatus
     });
-
-    console.log("Referee vote updated successfully");
   } catch (error) {
     console.error("REFEREE VOTE ERROR:", error);
     alert(`Failed referee vote: ${error.message}`);
@@ -1030,13 +1077,19 @@ function ensureExportControls() {
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
         <h3 class="springer-title text-xl mb-1">Approved Referee Export</h3>
-        <p class="text-sm text-gray-600 dark:text-gray-400">Exports only referee-approved integrals. Grouped by difficulty, 3 questions per sheet/file.</p>
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          Export approved integrals as combined PDF or LaTeX.
+        </p>
       </div>
       <div class="flex gap-3 flex-wrap">
         <button id="exportLatexBtn" class="btn-secondary">Export LaTeX</button>
-        <button id="exportPdfBtn" class="btn-primary">Export PDF</button>
+        <button id="exportPdfBtn" class="btn-primary">PDF: Questions Only</button>
+        <button id="exportPdfSolutionsBtn" class="btn-primary">PDF: Questions + Solutions</button>
       </div>
     </div>
+    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+      Layout: Very Easy 3, Easy 3, Medium 2, Hard 1, Very Hard 1 per sheet.
+    </p>
     <p id="exportMessage" class="mt-3 text-sm text-gray-500 dark:text-gray-400"></p>
   `;
 
@@ -1048,50 +1101,41 @@ function ensureExportControls() {
   }
 
   document.getElementById("exportLatexBtn").addEventListener("click", exportApprovedLatex);
-  document.getElementById("exportPdfBtn").addEventListener("click", exportApprovedPdf);
+  document.getElementById("exportPdfBtn").addEventListener("click", () => exportApprovedPdf(false));
+  document.getElementById("exportPdfSolutionsBtn").addEventListener("click", () => exportApprovedPdf(true));
 }
 
-function setExportMessage(text, isError = false) {
-  const el = document.getElementById("exportMessage");
-  if (!el) return;
-  el.textContent = text;
-  el.className = `mt-3 text-sm ${isError ? "text-red-600 dark:text-red-400" : "text-gray-500 dark:text-gray-400"}`;
-}
+function buildCombinedLatexDocument(groupedProblems, layoutConfig) {
+  const difficultyOrder = ["very-easy", "easy", "medium", "hard", "very-hard"];
+  let body = "";
 
-function getApprovedProblemsGroupedByDifficulty() {
-  const approved = allProblems.filter((p) => p.approvalStatus === "Approved");
+  difficultyOrder.forEach((bucket) => {
+    const problems = groupedProblems[bucket] || [];
+    if (!problems.length) return;
 
-  const grouped = {};
-  approved.forEach((p) => {
-    const bucket = getDifficultyBucket(p.estimatedDifficulty || 3);
-    if (!grouped[bucket]) grouped[bucket] = [];
-    grouped[bucket].push(p);
-  });
+    const perSheet = layoutConfig[bucket] || 3;
+    const groups = chunkArray(problems, perSheet);
+    const title = getDifficultyBucketLabel(bucket);
 
-  return grouped;
-}
+    groups.forEach((group, sheetIndex) => {
+      body += `
+\\section*{${sanitizeForLatex(title)} — Sheet ${sheetIndex + 1}}
+`;
 
-function buildLatexDocumentForDifficulty(bucket, problems) {
-  const title = getDifficultyBucketLabel(bucket);
-  const groups = chunkArray(problems, 3);
-
-  const body = groups.map((group, groupIndex) => {
-    const items = group.map((p, index) => {
-      return `
-\\noindent\\textbf{Question ${groupIndex * 3 + index + 1}}\\\\[4pt]
+      group.forEach((p, index) => {
+        body += `
+\\noindent\\textbf{Question ${sheetIndex * perSheet + index + 1}}\\\\[4pt]
 \\[
 ${p.problem}
 \\]
-\\vspace{1.0cm}
-      `;
-    }).join("\n");
 
-    return `
-\\section*{${sanitizeForLatex(title)} — Sheet ${groupIndex + 1}}
-${items}
-${groupIndex < groups.length - 1 ? "\\newpage" : ""}
-    `;
-  }).join("\n");
+\\vspace{1cm}
+`;
+      });
+
+      body += `\\newpage\n`;
+    });
+  });
 
   return `
 \\documentclass[12pt]{article}
@@ -1103,9 +1147,8 @@ ${groupIndex < groups.length - 1 ? "\\newpage" : ""}
 
 \\begin{document}
 \\begin{center}
-  {\\Large \\textbf{Integral Bee Approved Problems}}\\\\[4pt]
-  {\\large ${sanitizeForLatex(title)}}\\\\[8pt]
-  {3 problems per sheet}
+{\\Large \\textbf{Integral Bee Approved Problems}}\\\\[6pt]
+{\\normalsize Combined export by difficulty}
 \\end{center}
 
 ${body}
@@ -1116,47 +1159,79 @@ ${body}
 
 function exportApprovedLatex() {
   const grouped = getApprovedProblemsGroupedByDifficulty();
-  const buckets = Object.keys(grouped);
+  const totalApproved = Object.values(grouped).reduce((sum, arr) => sum + arr.length, 0);
 
-  if (buckets.length === 0) {
+  if (totalApproved === 0) {
     setExportMessage("No referee-approved problems available to export.", true);
     return;
   }
 
-  buckets.forEach((bucket) => {
-    const latex = buildLatexDocumentForDifficulty(bucket, grouped[bucket]);
-    downloadTextFile(`approved_integrals_${bucket}.tex`, latex, "application/x-tex;charset=utf-8");
-  });
-
-  setExportMessage(`Exported ${buckets.length} LaTeX file(s), one per difficulty bucket.`);
+  const latex = buildCombinedLatexDocument(grouped, EXPORT_LAYOUT);
+  downloadTextFile("approved_integrals_combined.tex", latex, "application/x-tex;charset=utf-8");
+  setExportMessage("Exported one combined LaTeX file for all approved problems.");
 }
 
-function buildHtmlPdfForDifficulty(bucket, problems) {
-  const title = getDifficultyBucketLabel(bucket);
-  const groups = chunkArray(problems, 3);
+function buildCombinedPdfHtml(groupedProblems, layoutConfig, includeSolutions = false) {
+  const difficultyOrder = ["very-easy", "easy", "medium", "hard", "very-hard"];
+  let allSheetsHtml = "";
+  let totalQuestions = 0;
 
-  const sheetHtml = groups.map((group, groupIndex) => {
-    const questions = group.map((p, index) => `
-      <div class="question-block">
-        <div class="q-label">Question ${groupIndex * 3 + index + 1}</div>
-        <div class="math">\\[ ${escapeHtml(p.problem)} \\]</div>
-      </div>
-    `).join("");
+  difficultyOrder.forEach((bucket) => {
+    const problems = groupedProblems[bucket] || [];
+    if (!problems.length) return;
 
-    return `
-      <section class="sheet">
-        <div class="sheet-title">${escapeHtml(title)} — Sheet ${groupIndex + 1}</div>
-        ${questions}
-      </section>
-    `;
-  }).join("");
+    const perSheet = layoutConfig[bucket] || 3;
+    const groups = chunkArray(problems, perSheet);
+    const title = getDifficultyBucketLabel(bucket);
+
+    groups.forEach((group, sheetIndex) => {
+      totalQuestions += group.length;
+
+      const questionsHtml = group.map((p, index) => `
+        <div class="question-block">
+          <div class="q-label">
+            ${escapeHtml(title)} • Question ${sheetIndex * perSheet + index + 1}
+          </div>
+
+          <div class="math question-math">
+            \\[ ${escapeHtml(p.problem)} \\]
+          </div>
+
+          ${
+            includeSolutions
+              ? `
+                <div class="solution-label">Solution / Answer</div>
+                <div class="math answer-math">
+                  \\[ ${escapeHtml(p.answer)} \\]
+                </div>
+              `
+              : ""
+          }
+        </div>
+      `).join("");
+
+      allSheetsHtml += `
+        <section class="sheet">
+          <div class="sheet-title">Integral Bee Approved Problems</div>
+          <div class="sheet-subtitle">
+            ${escapeHtml(title)} — Sheet ${sheetIndex + 1}
+          </div>
+          <div class="sheet-meta">
+            ${group.length} problem(s) on this sheet
+            ${includeSolutions ? " • with solutions" : ""}
+          </div>
+          ${questionsHtml}
+        </section>
+      `;
+    });
+  });
 
   return `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Approved Integrals - ${escapeHtml(title)}</title>
+  <title></title>
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\\\(', '\\\\)']] },
@@ -1165,81 +1240,176 @@ function buildHtmlPdfForDifficulty(bucket, problems) {
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
   <style>
-    @page { size: A4; margin: 18mm; }
+    @page {
+      size: A4;
+      margin: 12mm;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: Arial, sans-serif;
       color: #111;
       margin: 0;
       padding: 0;
+      background: white;
     }
+
     .sheet {
+      width: 100%;
+      min-height: 100vh;
       page-break-after: always;
-      min-height: 92vh;
+      break-after: page;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
     }
-    .sheet:last-child { page-break-after: auto; }
+
+    .sheet:last-child {
+      page-break-after: auto;
+      break-after: auto;
+    }
+
     .sheet-title {
-      font-size: 22px;
-      font-weight: bold;
-      margin-bottom: 18px;
       text-align: center;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 4px;
     }
+
+    .sheet-subtitle {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .sheet-meta {
+      text-align: center;
+      font-size: 12px;
+      color: #555;
+      margin-bottom: 14px;
+    }
+
     .question-block {
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 18px;
+      border: 1px solid #d9d9d9;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
+
     .q-label {
-      font-size: 15px;
-      font-weight: bold;
-      margin-bottom: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
     }
+
+    .solution-label {
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 10px;
+      margin-bottom: 6px;
+      color: #333;
+      border-top: 1px dashed #bbb;
+      padding-top: 8px;
+    }
+
     .math {
-      font-size: 20px;
-      min-height: 100px;
+      font-size: 19px;
+      overflow-wrap: anywhere;
+      text-align: center;
       display: flex;
       align-items: center;
       justify-content: center;
     }
+
+    .question-math {
+      min-height: ${includeSolutions ? "70px" : "100px"};
+    }
+
+    .answer-math {
+      min-height: 50px;
+      font-size: 17px;
+    }
+
     .print-note {
       text-align: center;
-      margin: 12px 0 18px;
-      color: #555;
-      font-size: 13px;
+      padding: 10px 0 14px;
+      color: #666;
+      font-size: 12px;
+    }
+
+    @media print {
+      .print-note {
+        display: none;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="print-note">Use browser Print → Save as PDF</div>
-  ${sheetHtml}
+  <div class="print-note">
+    Total approved questions: ${totalQuestions}.
+    ${includeSolutions ? "Questions + solutions" : "Questions"}
+    
+  </div>
+
+  ${allSheetsHtml}
+
   <script>
-    setTimeout(() => window.print(), 1200);
+    function waitForMathAndPrint() {
+      if (window.MathJax && MathJax.startup && MathJax.startup.promise) {
+        MathJax.startup.promise.then(() => {
+          setTimeout(() => {
+            window.print();
+          }, 1200);
+        });
+      } else {
+        setTimeout(() => {
+          window.print();
+        }, 1800);
+      }
+    }
+
+    waitForMathAndPrint();
   </script>
 </body>
 </html>
   `.trim();
 }
 
-function exportApprovedPdf() {
+function exportApprovedPdf(includeSolutions = false) {
   const grouped = getApprovedProblemsGroupedByDifficulty();
-  const buckets = Object.keys(grouped);
+  const totalApproved = Object.values(grouped).reduce((sum, arr) => sum + arr.length, 0);
 
-  if (buckets.length === 0) {
+  if (totalApproved === 0) {
     setExportMessage("No referee-approved problems available to export.", true);
     return;
   }
 
-  buckets.forEach((bucket) => {
-    const html = buildHtmlPdfForDifficulty(bucket, grouped[bucket]);
-    const w = window.open("", "_blank");
-    if (!w) return;
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
-  });
+  const html = buildCombinedPdfHtml(grouped, EXPORT_LAYOUT, includeSolutions);
+  const w = window.open("", "_blank");
 
-  setExportMessage("Opened PDF print windows for all approved difficulty buckets.");
+  if (!w) {
+    setExportMessage("Popup blocked. Please allow popups for PDF export.", true);
+    return;
+  }
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+
+  setExportMessage(
+    includeSolutions
+      ? "Opened combined print window with questions + solutions."
+      : "Opened combined print window with questions only."
+  );
 }
 
 console.log("Integral Bee platform script loaded successfully with referee system + export support.");
-
